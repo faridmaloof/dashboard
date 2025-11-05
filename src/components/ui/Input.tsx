@@ -115,6 +115,10 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
               displayError && 'border-red-500 focus:ring-red-500',
               className
             )}
+            style={isPassword && showPasswordToggle ? {
+              // Desactivar el icono nativo de mostrar contraseña del navegador
+              WebkitTextSecurity: showPassword ? 'none' : 'disc',
+            } as React.CSSProperties : undefined}
             {...props}
           />
 

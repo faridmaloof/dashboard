@@ -166,3 +166,5 @@ const handleExecute = () => {
     </div>
   )
 }
+
+export default ProcessesPage

@@ -25,8 +25,13 @@ export default defineConfig({
           // Separar axios y utilidades
           'utils-vendor': ['axios', 'clsx', 'date-fns', 'zod'],
         },
+        // Mejorar nombres de chunks para debugging
+        chunkFileNames: 'assets/[name]-[hash].js',
+        entryFileNames: 'assets/[name]-[hash].js',
+        assetFileNames: 'assets/[name]-[hash].[ext]',
       },
     },
-    chunkSizeWarningLimit: 600,
+    // Aumentar límite a 700KB ya que con lazy loading el chunk inicial será más pequeño
+    chunkSizeWarningLimit: 700,
   },
 })

@@ -100,6 +100,35 @@ export interface ProcessExecution {
   error?: string
 }
 
+// Brand Configuration (SaaS)
+export interface BrandConfig {
+  // Nombre de la marca (reemplaza "FaruTech")
+  brandName: string
+  // Título del tab del navegador
+  pageTitle: string
+  // URL del logo corto (para sidebar, favicon, etc.)
+  logoUrl: string
+  // URL del logo completo (para login, navbar, etc.)
+  logoFullUrl: string
+  // Versión de la aplicación (solo lectura, viene del backend)
+  version?: string
+  // Copyright (solo lectura, viene del backend)
+  copyright?: string
+  // Color primario (hex)
+  primaryColor?: string
+  // Descripción breve
+  description?: string
+}
+
+// App Configuration
+export interface AppConfig extends BrandConfig {
+  // Configuraciones adicionales del sistema
+  maintenanceMode?: boolean
+  maxUploadSize?: number
+  supportEmail?: string
+  supportPhone?: string
+}
+
 // Dashboard
 export interface DashboardStats {
   users: number

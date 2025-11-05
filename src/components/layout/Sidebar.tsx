@@ -8,6 +8,7 @@ import type { MouseEvent as ReactMouseEvent } from 'react'
 import { XMarkIcon, ChevronRightIcon } from '@heroicons/react/24/outline'
 import clsx from 'clsx'
 import { useSidebarStore } from '@/store/sidebarStore'
+import { useConfig } from '@/contexts/ConfigContext'
 import type { MenuEntry, MenuCategory, MenuItemBase } from '@/config/menu.config'
 
 import { useMenu } from '@/hooks/useMenu'
@@ -201,6 +202,7 @@ function CollapsedCategoryItem({ category }: { category: MenuCategory }) {
 
 export function Sidebar() {
   const { isOpen, isMobile, close, setSidebarWidth } = useSidebarStore()
+  const { config } = useConfig()
   const [expandedCategory, setExpandedCategory] = useState<string | null>(null)
   const [localWidth, setLocalWidth] = useState(256) // Default 256px (w-64)
   const [isResizing, setIsResizing] = useState(false)
@@ -274,14 +276,17 @@ export function Sidebar() {
               !isOpen && 'lg:justify-center'
             )}>
               <img 
-                src="/Logo.png" 
-                alt="FaruTech Logo" 
+                src={config.logoUrl} 
+                alt={`${config.brandName} Logo`}
                 className="w-9 h-9 flex-shrink-0 transition-transform duration-300 hover:scale-110 object-contain"
+                onError={(e) => {
+                  e.currentTarget.src = '/Logo.png'
+                }}
               />
               {isOpen && (
                 <div className="flex flex-col animate-in fade-in slide-in-from-left-2 duration-300">
                   <span className="text-sm font-bold text-gray-900 dark:text-white whitespace-nowrap leading-tight">
-                    FaruTech
+                    {config.brandName}
                   </span>
                   <span className="text-[10px] text-gray-500 dark:text-gray-400 whitespace-nowrap leading-tight">
                     Admin Panel
@@ -375,8 +380,8 @@ export function Sidebar() {
           {isOpen ? (
             <div className="p-3 border-t border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900/20">
               <div className="text-center text-xs text-gray-500 dark:text-gray-400 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                <p className="font-bold text-gray-700 dark:text-gray-300">Admin Panel v1.0.0</p>
-                <p className="text-[10px] mt-0.5">© 2025 FaruTech</p>
+                <p className="font-bold text-gray-700 dark:text-gray-300">Admin Panel {config.version}</p>
+                <p className="text-[10px] mt-0.5">{config.copyright}</p>
               </div>
             </div>
           ) : null}
