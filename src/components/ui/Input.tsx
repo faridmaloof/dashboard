@@ -4,6 +4,7 @@
 
 import { forwardRef, useState } from 'react'
 import type { InputHTMLAttributes, ReactNode, ChangeEvent } from 'react'
+import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline'
 import clsx from 'clsx'
 
 type ValidationMode = 'block' | 'error'
@@ -21,6 +22,8 @@ interface InputProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'onChan
   validationMode?: ValidationMode
   /** Callback cuando el valor cambia (solo se llama con valores válidos si pattern está definido) */
   onChange?: (e: ChangeEvent<HTMLInputElement>) => void
+  /** Show password toggle for password inputs (default: true) */
+  showPasswordToggle?: boolean
 }
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(
@@ -37,12 +40,19 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
       pattern,
       validationMode = 'block',
       onChange,
+      type,
+      showPasswordToggle = true,
       ...props
     },
     ref
   ) => {
     const inputId = id || `input-${Math.random().toString(36).substring(7)}`
     const [validationError, setValidationError] = useState<string>('')
+    const [showPassword, setShowPassword] = useState(false)
+    
+    // Determine if this is a password input
+    const isPassword = type === 'password'
+    const effectiveType = isPassword && showPassword ? 'text' : type
 
     const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
       const value = e.target.value
@@ -96,18 +106,36 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           <input
             ref={ref}
             id={inputId}
+            type={effectiveType}
             onChange={handleChange}
             className={clsx(
               'input',
               icon && iconPosition === 'left' && 'pl-10',
-              icon && iconPosition === 'right' && 'pr-10',
+              (icon && iconPosition === 'right') || (isPassword && showPasswordToggle) ? 'pr-10' : '',
               displayError && 'border-red-500 focus:ring-red-500',
               className
             )}
             {...props}
           />
 
-          {icon && iconPosition === 'right' && (
+          {/* Password visibility toggle */}
+          {isPassword && showPasswordToggle && (
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors duration-200 z-10"
+              tabIndex={-1}
+            >
+              {showPassword ? (
+                <EyeSlashIcon className="h-5 w-5" />
+              ) : (
+                <EyeIcon className="h-5 w-5" />
+              )}
+            </button>
+          )}
+
+          {/* Right icon (only if not password or password toggle is disabled) */}
+          {icon && iconPosition === 'right' && !(isPassword && showPasswordToggle) && (
             <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-gray-400">
               {icon}
             </div>

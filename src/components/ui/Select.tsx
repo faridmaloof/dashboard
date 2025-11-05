@@ -18,6 +18,8 @@ interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
   options: SelectOption[]
   fullWidth?: boolean
   placeholder?: string
+  /** Message to show when no options are available */
+  emptyMessage?: string
 }
 
 export const Select = forwardRef<HTMLSelectElement, SelectProps>(
@@ -29,6 +31,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
       options,
       fullWidth = true,
       placeholder,
+      emptyMessage = 'No hay opciones disponibles',
       className,
       id,
       ...props
@@ -36,6 +39,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
     ref
   ) => {
     const selectId = id || `select-${Math.random().toString(36).substring(7)}`
+    const hasOptions = options && options.length > 0
 
     return (
       <div className={clsx('flex flex-col', fullWidth && 'w-full')}>
@@ -54,8 +58,10 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
           className={clsx(
             'input',
             error && 'border-red-500 focus:ring-red-500',
+            !hasOptions && 'bg-gray-50 dark:bg-gray-800 text-gray-400 cursor-not-allowed',
             className
           )}
+          disabled={!hasOptions || props.disabled}
           {...props}
         >
           {placeholder && (
@@ -63,11 +69,17 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
               {placeholder}
             </option>
           )}
-          {options.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
+          {!hasOptions ? (
+            <option value="" disabled>
+              {emptyMessage}
             </option>
-          ))}
+          ) : (
+            options.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))
+          )}
         </select>
 
         {error && (

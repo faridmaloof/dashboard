@@ -24,6 +24,7 @@ import { useThemeStore } from '@/store/themeStore'
 import { Breadcrumb } from '../ui/Breadcrumb'
 import type { BreadcrumbItem } from '../ui/Breadcrumb'
 import clsx from 'clsx'
+import SearchBar from './SearchBar'
 
 // Breadcrumb mapping with routes
 const breadcrumbMap: Record<string, BreadcrumbItem[]> = {
@@ -138,6 +139,10 @@ export function Navbar() {
 
         {/* Right side */}
         <div className="flex items-center gap-2">
+          {/* Top search - writes to global search store for consumers */}
+          <div className="hidden md:block">
+            <SearchBar placeholder="Buscar en el panel..." />
+          </div>
           {/* Theme toggle */}
           <button
             onClick={toggleTheme}

@@ -5,15 +5,13 @@
 import { NavLink } from 'react-router-dom'
 import { useState, useEffect, useRef } from 'react'
 import type { MouseEvent as ReactMouseEvent } from 'react'
-import {
-  XMarkIcon,
-  ChevronRightIcon,
-} from '@heroicons/react/24/outline'
+import { XMarkIcon, ChevronRightIcon } from '@heroicons/react/24/outline'
 import clsx from 'clsx'
 import { useSidebarStore } from '@/store/sidebarStore'
 import type { MenuEntry, MenuCategory, MenuItemBase } from '@/config/menu.config'
 
 import { useMenu } from '@/hooks/useMenu'
+import { IconRenderer } from '@/components/ui/IconRenderer'
 
 function isCategory(item: MenuEntry): item is MenuCategory {
   return !!(item && (item as any).items && Array.isArray((item as any).items))
@@ -260,8 +258,11 @@ export function Sidebar() {
         className={clsx(
           'fixed top-0 left-0 h-full bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 shadow-xl',
           'transition-all duration-500 ease-out',
-          isOpen ? 'translate-x-0 z-30 w-64' : '-translate-x-full lg:translate-x-0 z-30',
+          // When fully open (expanded) we want the sidebar above content but below modal overlays.
+          isOpen ? 'translate-x-0 z-30 w-64' : '-translate-x-full lg:translate-x-0 z-10',
+          // collapsed width on lg
           !isOpen && 'lg:w-[63px]',
+          // mobile overlay when open
           isMobile && 'w-64 z-50'
         )}
       >
@@ -337,7 +338,7 @@ export function Sidebar() {
                     }
                     onClick={() => isMobile && close()}
                   >
-                    {(() => { const Icon = item.icon; return Icon ? <Icon className="h-5 w-5 flex-shrink-0 transition-transform duration-200 group-hover:scale-110" /> : null })()}
+                    {(() => { const Icon = item.icon; return Icon ? <IconRenderer icon={Icon} className="h-5 w-5 flex-shrink-0 transition-transform duration-200 group-hover:scale-110" /> : null })()}
                     <span className="transition-colors duration-200">{item.name}</span>
                     {item.badge !== undefined && (
                       <span className="ml-auto inline-flex items-center justify-center px-1.5 py-0.5 text-xs font-bold leading-none text-white bg-red-600 rounded-full animate-pulse">
@@ -363,7 +364,7 @@ export function Sidebar() {
                     onClick={() => isMobile && close()}
                     title={item.name}
                   >
-                    {(() => { const Icon = item.icon; return Icon ? <Icon className="h-5 w-5 flex-shrink-0 transition-transform duration-200 group-hover:scale-110" /> : null })()}
+                    {(() => { const Icon = item.icon; return Icon ? <IconRenderer icon={Icon} className="h-5 w-5 flex-shrink-0 transition-transform duration-200 group-hover:scale-110" /> : null })()}
                   </NavLink>
                 )
               }

@@ -4,19 +4,19 @@
 
 import { useState } from 'react'
 import { useAuth } from '@/hooks/useAuth'
+import { Input } from '@/components/ui/Input'
+import { Button } from '@/components/ui/Button'
+import { Checkbox } from '@/components/ui/Checkbox'
+import { Alert } from '@/components/ui/Alert'
 import { 
   UserIcon, 
   LockClosedIcon, 
-  EyeIcon, 
-  EyeSlashIcon,
   ArrowRightIcon,
   SparklesIcon
 } from '@heroicons/react/24/outline'
-import clsx from 'clsx'
 
 export function LoginPage() {
   // useAuth.navigate performs navigation on success
-  const [showPassword, setShowPassword] = useState(false)
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -75,78 +75,46 @@ export function LoginPage() {
           <form onSubmit={handleSubmit} className="mt-8 space-y-6">
             <div className="space-y-4">
               {/* Email input */}
-              <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Correo electrónico
-                </label>
-                <div className="relative group">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <UserIcon className="h-5 w-5 text-gray-400 group-focus-within:text-primary-600 transition-colors duration-200" />
-                  </div>
-                  <input
-                    id="email"
-                    name="email"
-                    type="email"
-                    autoComplete="email"
-                    required
-                    value={formData.email}
-                    onChange={handleChange}
-                    className="block w-full pl-10 pr-3 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 transition-all duration-200 group"
-                    placeholder="tu@email.com"
-                  />
-                </div>
-              </div>
+              <Input
+                id="email"
+                name="email"
+                type="email"
+                autoComplete="email"
+                required
+                value={formData.email}
+                onChange={handleChange}
+                label="Correo electrónico"
+                placeholder="tu@email.com"
+                icon={<UserIcon className="h-5 w-5" />}
+                iconPosition="left"
+              />
 
               {/* Password input */}
-              <div>
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Contraseña
-                </label>
-                <div className="relative group">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <LockClosedIcon className="h-5 w-5 text-gray-400 group-focus-within:text-primary-600 transition-colors duration-200" />
-                  </div>
-                  <input
-                    id="password"
-                    name="password"
-                    type={showPassword ? 'text' : 'password'}
-                    autoComplete="current-password"
-                    required
-                    value={formData.password}
-                    onChange={handleChange}
-                    className="block w-full pl-10 pr-12 py-3 border border-gray-300 dark:border-gray-600 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 transition-all duration-200"
-                    placeholder="••••••••"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors duration-200"
-                  >
-                    {showPassword ? (
-                      <EyeSlashIcon className="h-5 w-5" />
-                    ) : (
-                      <EyeIcon className="h-5 w-5" />
-                    )}
-                  </button>
-                </div>
-              </div>
+              <Input
+                id="password"
+                name="password"
+                type="password"
+                autoComplete="current-password"
+                required
+                value={formData.password}
+                onChange={handleChange}
+                label="Contraseña"
+                placeholder="••••••••"
+                icon={<LockClosedIcon className="h-5 w-5" />}
+                iconPosition="left"
+                showPasswordToggle={true}
+              />
             </div>
 
             {/* Remember me & Forgot password */}
             <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <input
-                  id="remember"
-                  name="remember"
-                  type="checkbox"
-                  checked={formData.remember}
-                  onChange={handleChange}
-                  className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded cursor-pointer"
-                />
-                <label htmlFor="remember" className="ml-2 block text-sm text-gray-700 dark:text-gray-300 cursor-pointer">
-                  Recordarme
-                </label>
-              </div>
+              <Checkbox
+                id="remember"
+                name="remember"
+                checked={formData.remember}
+                onChange={handleChange}
+                label="Recordarme"
+              />
 
               <div className="text-sm">
                 <a href="#" className="font-medium text-primary-600 dark:text-primary-400 hover:text-primary-500 dark:hover:text-primary-300 transition-colors duration-200">
@@ -156,39 +124,37 @@ export function LoginPage() {
             </div>
 
             {/* Submit button */}
-            <div>
-              <button
-                type="submit"
-                disabled={isLoggingIn}
-                className={clsx(
-                  'group relative w-full flex justify-center items-center gap-2 py-3 px-4 border border-transparent text-base font-semibold rounded-xl text-white transition-all duration-300',
-                  isLoggingIn
-                    ? 'bg-gray-400 cursor-not-allowed'
-                    : 'bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 shadow-lg hover:shadow-xl hover:shadow-primary-600/30 transform hover:-translate-y-0.5'
-                )}
-              >
-                {isLoggingIn ? (
-                  <>
-                    <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Iniciando sesión...
-                  </>
-                ) : (
-                  <>
-                    Iniciar sesión
-                    <ArrowRightIcon className="h-5 w-5 group-hover:translate-x-1 transition-transform duration-200" />
-                  </>
-                )}
-              </button>
-            </div>
+            <Button
+              type="submit"
+              disabled={isLoggingIn}
+              fullWidth
+              size="lg"
+              className="group"
+            >
+              {isLoggingIn ? (
+                <>
+                  <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  <span>Iniciando sesión...</span>
+                </>
+              ) : (
+                <>
+                  <span>Iniciar sesión</span>
+                  <ArrowRightIcon className="h-5 w-5 group-hover:translate-x-1 transition-transform duration-200" />
+                </>
+              )}
+            </Button>
 
             {/* Mostrar errores del login */}
             {loginError && (
-              <div className="mt-4 p-3 bg-red-50 text-red-700 border border-red-200 rounded">
-                { (loginError as any)?.message || 'Error al iniciar sesión' }
-              </div>
+              <Alert 
+                variant="error" 
+                title="Error al iniciar sesión"
+              >
+                {(loginError as any)?.message || 'Credenciales inválidas. Por favor verifica e intenta de nuevo.'}
+              </Alert>
             )}
 
             {/* Demo credentials */}
@@ -211,42 +177,130 @@ export function LoginPage() {
       </div>
 
       {/* Right side - Visual */}
-      <div className="hidden lg:flex lg:flex-1 bg-gradient-to-br from-primary-600 via-primary-700 to-primary-800 relative overflow-hidden">
+      <div className="hidden lg:flex lg:flex-1 bg-gradient-to-br from-primary-600 via-primary-700 to-primary-900 relative overflow-hidden">
         {/* Animated background patterns */}
         <div className="absolute inset-0">
-          <div className="absolute top-0 left-0 w-96 h-96 bg-primary-500 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
-          <div className="absolute top-0 right-0 w-96 h-96 bg-primary-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
-          <div className="absolute bottom-0 left-1/2 w-96 h-96 bg-primary-600 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000"></div>
+          <div className="absolute top-0 left-0 w-[500px] h-[500px] bg-primary-500/30 rounded-full mix-blend-overlay filter blur-3xl animate-blob"></div>
+          <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary-400/30 rounded-full mix-blend-overlay filter blur-3xl animate-blob animation-delay-2000"></div>
+          <div className="absolute bottom-0 left-1/2 w-[500px] h-[500px] bg-primary-600/30 rounded-full mix-blend-overlay filter blur-3xl animate-blob animation-delay-4000"></div>
         </div>
 
+        {/* Decorative grid */}
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(to_bottom,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:4rem_4rem]"></div>
+
         {/* Content */}
-        <div className="relative z-10 flex flex-col items-center justify-center p-12 text-white">
-          <div className="max-w-md space-y-8 text-center">
-            <div className="space-y-4">
-              <h2 className="text-5xl font-black tracking-tight">
-                Bienvenido de vuelta
-              </h2>
-              <p className="text-xl text-primary-100">
-                Accede a tu panel de administración y gestiona tu negocio de manera inteligente
-              </p>
+        <div className="relative z-10 flex flex-col items-center justify-center p-12 text-white w-full">
+          <div className="max-w-xl w-full space-y-12">
+            {/* Header Section */}
+            <div className="space-y-6 text-center">
+              <div className="inline-flex items-center justify-center w-20 h-20 mb-6 rounded-2xl bg-white/10 backdrop-blur-xl border border-white/20 shadow-2xl">
+                <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+              </div>
+              
+              <div>
+                <h2 className="text-6xl font-black tracking-tight mb-4 bg-clip-text text-transparent bg-gradient-to-r from-white via-primary-100 to-white">
+                  Bienvenido de vuelta
+                </h2>
+                <p className="text-xl text-primary-50/90 leading-relaxed max-w-md mx-auto">
+                  Tu plataforma de administración inteligente para gestionar todo tu negocio en un solo lugar
+                </p>
+              </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-6 mt-12">
-              <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 hover:bg-white/20 transition-all duration-300 transform hover:scale-105">
-                <div className="text-4xl font-bold mb-2">500+</div>
-                <div className="text-sm text-primary-100">Empresas confían en nosotros</div>
+            {/* Stats Grid */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="group relative bg-white/5 backdrop-blur-xl rounded-2xl p-8 border border-white/10 hover:border-white/30 transition-all duration-500 hover:bg-white/10 hover:shadow-2xl hover:shadow-primary-500/20 hover:-translate-y-1">
+                <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                <div className="relative">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="p-2 rounded-lg bg-emerald-500/20 text-emerald-300">
+                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                      </svg>
+                    </div>
+                    <div className="text-5xl font-black">500+</div>
+                  </div>
+                  <div className="text-sm font-medium text-primary-100">Empresas activas</div>
+                  <div className="mt-2 text-xs text-primary-200/60">Confiando en nuestra plataforma</div>
+                </div>
               </div>
-              <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 hover:bg-white/20 transition-all duration-300 transform hover:scale-105">
-                <div className="text-4xl font-bold mb-2">99.9%</div>
-                <div className="text-sm text-primary-100">Uptime garantizado</div>
+
+              <div className="group relative bg-white/5 backdrop-blur-xl rounded-2xl p-8 border border-white/10 hover:border-white/30 transition-all duration-500 hover:bg-white/10 hover:shadow-2xl hover:shadow-primary-500/20 hover:-translate-y-1">
+                <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                <div className="relative">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="p-2 rounded-lg bg-blue-500/20 text-blue-300">
+                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                    <div className="text-5xl font-black">99.9%</div>
+                  </div>
+                  <div className="text-sm font-medium text-primary-100">Uptime garantizado</div>
+                  <div className="mt-2 text-xs text-primary-200/60">Disponibilidad excepcional</div>
+                </div>
               </div>
-              <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 hover:bg-white/20 transition-all duration-300 transform hover:scale-105">
-                <div className="text-4xl font-bold mb-2">24/7</div>
-                <div className="text-sm text-primary-100">Soporte técnico</div>
+
+              <div className="group relative bg-white/5 backdrop-blur-xl rounded-2xl p-8 border border-white/10 hover:border-white/30 transition-all duration-500 hover:bg-white/10 hover:shadow-2xl hover:shadow-primary-500/20 hover:-translate-y-1">
+                <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                <div className="relative">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="p-2 rounded-lg bg-purple-500/20 text-purple-300">
+                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    </div>
+                    <div className="text-5xl font-black">24/7</div>
+                  </div>
+                  <div className="text-sm font-medium text-primary-100">Soporte técnico</div>
+                  <div className="mt-2 text-xs text-primary-200/60">Siempre disponibles para ti</div>
+                </div>
               </div>
-              <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20 hover:bg-white/20 transition-all duration-300 transform hover:scale-105">
-                <div className="text-4xl font-bold mb-2">⚡</div>
-                <div className="text-sm text-primary-100">Super rápido</div>
+
+              <div className="group relative bg-white/5 backdrop-blur-xl rounded-2xl p-8 border border-white/10 hover:border-white/30 transition-all duration-500 hover:bg-white/10 hover:shadow-2xl hover:shadow-primary-500/20 hover:-translate-y-1">
+                <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                <div className="relative">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="p-2 rounded-lg bg-amber-500/20 text-amber-300">
+                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                      </svg>
+                    </div>
+                    <div className="text-5xl font-black">⚡</div>
+                  </div>
+                  <div className="text-sm font-medium text-primary-100">Velocidad extrema</div>
+                  <div className="mt-2 text-xs text-primary-200/60">Rendimiento optimizado</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Features list */}
+            <div className="space-y-4 pt-4">
+              <div className="flex items-center gap-4 text-primary-50/80 group hover:text-white transition-colors duration-300">
+                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center group-hover:bg-emerald-500/30 transition-colors duration-300">
+                  <svg className="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <span className="text-sm font-medium">Acceso seguro con autenticación de dos factores</span>
+              </div>
+              <div className="flex items-center gap-4 text-primary-50/80 group hover:text-white transition-colors duration-300">
+                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center group-hover:bg-emerald-500/30 transition-colors duration-300">
+                  <svg className="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <span className="text-sm font-medium">Panel de control intuitivo y fácil de usar</span>
+              </div>
+              <div className="flex items-center gap-4 text-primary-50/80 group hover:text-white transition-colors duration-300">
+                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center group-hover:bg-emerald-500/30 transition-colors duration-300">
+                  <svg className="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <span className="text-sm font-medium">Reportes y analíticas en tiempo real</span>
               </div>
             </div>
           </div>

@@ -5,6 +5,7 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiService } from '@/services/api.service'
+import { demoAuthService, isDemoModeEnabled } from '@/services/demo-auth.service'
 import { AUTH_CONFIG, ENDPOINTS } from '../config/api.config'
 import type { AuthResponse, LoginCredentials, RegisterData, User } from '@/types'
 import { getAccessToken, setTokens, clearTokens } from '@/utils/auth'
@@ -61,33 +62,28 @@ export function useAuth() {
   // Login
   const loginMutation = useMutation({
     mutationFn: async (credentials: LoginCredentials) => {
+      // Primero intentar con el servicio demo si está habilitado
+      if (isDemoModeEnabled()) {
+        try {
+          const demoResponse = await demoAuthService.login(credentials)
+          return demoResponse
+        } catch (demoError) {
+          // Si falla el demo, intentar con la API real
+          console.log('Demo auth failed, trying real API...')
+        }
+      }
+
+      // Intentar con API real
       try {
         const response = await apiService.post<AuthResponse>(ENDPOINTS.auth.login, credentials)
         return response.data
-      } catch (err) {
-        // Demo fallback for development if enabled
-        // Set VITE_ENABLE_DEMO_AUTH=true in env to enable
-        const demoEnabled = import.meta.env.VITE_ENABLE_DEMO_AUTH === 'true'
-        const demoEmail = import.meta.env.VITE_DEMO_EMAIL || 'demo@farutech.com'
-        const demoPassword = import.meta.env.VITE_DEMO_PASSWORD || 'demo123'
-
-        if (demoEnabled && credentials.email === demoEmail && credentials.password === demoPassword) {
-          // Return a mocked AuthResponse
-          return {
-            token: 'demo-access-token',
-            refreshToken: demoEnabled ? 'demo-refresh-token' : undefined,
-            user: {
-              id: 'demo',
-              email: demoEmail,
-              name: 'Usuario Demo',
-              role: 'admin',
-              permissions: ['users.view', 'processes.view', 'reports.view', 'settings.manage'],
-              createdAt: new Date().toISOString(),
-            } as any,
-          } as AuthResponse
+      } catch (apiError: any) {
+        // Si la API real también falla y el modo demo está habilitado,
+        // dar un mensaje más claro
+        if (isDemoModeEnabled()) {
+          throw new Error('Credenciales inválidas. Usa: demo@farutech.com / demo123')
         }
-
-        throw err
+        throw apiError
       }
     },
     onSuccess: (data) => {
