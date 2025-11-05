@@ -71,7 +71,7 @@ La aplicación está corriendo en modo desarrollo y lista para conectar con tu b
 ## 📁 Estructura del Proyecto
 
 ```
-webapp/
+Dashboard/
 ├── src/
 │   ├── components/
 │   │   ├── ui/              # Componentes UI reutilizables
