@@ -16,6 +16,10 @@ export const AUTH_CONFIG = {
   tokenKey: 'auth_token',
   refreshTokenKey: 'refresh_token',
   userKey: 'user_data',
+  // Si el backend usa cookies httpOnly para auth (recomendado), activar esto.
+  // Cuando true, las llamadas deben enviarse con `withCredentials: true` y
+  // el refresh puede no requerir enviar el refresh token en el body.
+  useHttpOnlyCookie: false,
 }
 
 export const ENDPOINTS = {
@@ -26,6 +30,7 @@ export const ENDPOINTS = {
     logout: '/auth/logout',
     refresh: '/auth/refresh',
     me: '/auth/me',
+    menu: '/menu',
   },
   // Users
   users: {

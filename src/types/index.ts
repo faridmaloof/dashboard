@@ -9,6 +9,10 @@ export interface User {
   name: string
   avatar?: string
   role: 'admin' | 'user' | 'moderator'
+  // Permisos asignados al usuario (códigos/strings)
+  permissions?: string[]
+  // Atajos o accesos específicos (opcional)
+  accesses?: string[]
   createdAt: string
   updatedAt?: string
 }

@@ -6,78 +6,20 @@ import { NavLink } from 'react-router-dom'
 import { useState, useEffect, useRef } from 'react'
 import type { MouseEvent as ReactMouseEvent } from 'react'
 import {
-  HomeIcon,
-  UsersIcon,
-  Cog6ToothIcon,
-  ChartBarIcon,
-  CommandLineIcon,
   XMarkIcon,
   ChevronRightIcon,
-  ShieldCheckIcon,
-  DocumentTextIcon,
-  UserCircleIcon,
-  Squares2X2Icon,
 } from '@heroicons/react/24/outline'
 import clsx from 'clsx'
 import { useSidebarStore } from '@/store/sidebarStore'
+import type { MenuEntry, MenuCategory, MenuItemBase } from '@/config/menu.config'
 
-interface NavItem {
-  name: string
-  href: string
-  icon: React.ComponentType<{ className?: string }>
-  badge?: number
+import { useMenu } from '@/hooks/useMenu'
+
+function isCategory(item: MenuEntry): item is MenuCategory {
+  return !!(item && (item as any).items && Array.isArray((item as any).items))
 }
 
-interface NavCategory {
-  name: string
-  icon: React.ComponentType<{ className?: string }>
-  items: NavItem[]
-}
-
-const navigation: (NavItem | NavCategory)[] = [
-  { name: 'Dashboard', href: '/dashboard', icon: HomeIcon },
-  { name: 'Componentes', href: '/components', icon: Squares2X2Icon },
-  {
-    name: 'Gestión',
-    icon: DocumentTextIcon,
-    items: [
-      { name: 'Usuarios', href: '/users', icon: UsersIcon },
-      { name: 'Procesos', href: '/processes', icon: CommandLineIcon },
-      { name: 'Reportes', href: '/reports', icon: ChartBarIcon },
-    ],
-  },
-  {
-    name: 'Seguridad',
-    icon: ShieldCheckIcon,
-    items: [
-      { name: 'Roles y Permisos', href: '/security/roles', icon: ShieldCheckIcon },
-      { name: 'Auditoría', href: '/security/audit', icon: DocumentTextIcon },
-    ],
-  },
-  {
-    name: 'Configuración',
-    icon: Cog6ToothIcon,
-    items: [
-      { name: 'Perfil', href: '/settings/profile', icon: UserCircleIcon },
-      { name: 'General', href: '/settings/general', icon: Cog6ToothIcon },
-      { name: 'Sistema', href: '/settings/system', icon: Cog6ToothIcon },
-    ],
-  },
-]
-
-function isCategory(item: NavItem | NavCategory): item is NavCategory {
-  return 'items' in item
-}
-
-function CategoryItem({ 
-  category, 
-  isExpanded, 
-  onToggle 
-}: { 
-  category: NavCategory
-  isExpanded: boolean
-  onToggle: () => void
-}) {
+function CategoryItem({ category, isExpanded, onToggle }: { category: MenuCategory; isExpanded: boolean; onToggle: () => void }) {
   const { isMobile, close } = useSidebarStore()
 
   return (
@@ -87,7 +29,10 @@ function CategoryItem({
         className="w-full flex items-center justify-between px-3 py-2.5 text-xs font-semibold text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-all duration-200 uppercase tracking-wider group"
       >
         <div className="flex items-center gap-2.5">
-          <category.icon className="h-4 w-4 flex-shrink-0 transition-transform duration-200 group-hover:scale-110" />
+          {category.icon && (() => {
+            const Icon = category.icon
+            return <Icon className="h-4 w-4 flex-shrink-0 transition-transform duration-200 group-hover:scale-110" />
+          })()}
           <span className="transition-colors duration-200">{category.name}</span>
         </div>
         <ChevronRightIcon
@@ -97,18 +42,18 @@ function CategoryItem({
           )}
         />
       </button>
-      
-      <div 
+
+      <div
         className={clsx(
           'overflow-hidden transition-all duration-300 ease-in-out',
           isExpanded ? 'max-h-96 opacity-100 mt-1' : 'max-h-0 opacity-0'
         )}
       >
         <div className="ml-4 space-y-0.5 animate-in slide-in-from-top-2">
-          {category.items.map((item, index) => (
+          {category.items.map((item: MenuItemBase, index: number) => (
             <NavLink
               key={item.name}
-              to={item.href}
+              to={item.href ?? '#'}
               style={{ animationDelay: `${index * 50}ms` }}
               className={({ isActive }) =>
                 clsx(
@@ -120,7 +65,7 @@ function CategoryItem({
               }
               onClick={() => isMobile && close()}
             >
-              <item.icon className="h-4 w-4 flex-shrink-0 transition-transform duration-200 group-hover:scale-110" />
+              {item.icon && (() => { const Icon = item.icon; return <Icon className="h-4 w-4 flex-shrink-0 transition-transform duration-200 group-hover:scale-110" /> })()}
               <span className="transition-colors duration-200">{item.name}</span>
               {item.badge !== undefined && (
                 <span className="ml-auto inline-flex items-center justify-center px-1.5 py-0.5 text-xs font-bold leading-none text-white bg-red-600 rounded-full animate-pulse">
@@ -135,49 +80,39 @@ function CategoryItem({
   )
 }
 
-function CollapsedCategoryItem({ category }: { category: NavCategory }) {
+function CollapsedCategoryItem({ category }: { category: MenuCategory }) {
   const [isHovered, setIsHovered] = useState(false)
   const [popupTop, setPopupTop] = useState<number>(0)
   const { isMobile, close } = useSidebarStore()
   const leaveTimeoutRef = useRef<number | null>(null)
 
   const handleMouseEnter = (e: React.MouseEvent<HTMLDivElement>) => {
-    // Cancelar cualquier timeout pendiente
     if (leaveTimeoutRef.current) {
       clearTimeout(leaveTimeoutRef.current)
       leaveTimeoutRef.current = null
     }
-    
+
     setIsHovered(true)
-    
-    // Calcular la posición vertical del popup
+
     const rect = e.currentTarget.getBoundingClientRect()
-    
-    // Posición del botón relativa a la ventana (ajustado -12px para alinear mejor)
-    const buttonTop = rect.top - 12.
-    
-    // Calcular si el popup cabe debajo del botón
+    const buttonTop = rect.top - 12
     const popupMaxHeight = Math.min(400, window.innerHeight - 200)
     const spaceBelow = window.innerHeight - rect.bottom
-    
+
     if (spaceBelow < popupMaxHeight && rect.top > spaceBelow) {
-      // Mostrar arriba del botón
       setPopupTop(buttonTop - popupMaxHeight)
     } else {
-      // Mostrar alineado con el botón
       setPopupTop(buttonTop)
     }
   }
 
   const handleMouseLeave = () => {
-    // Añadir un pequeño delay antes de cerrar
     leaveTimeoutRef.current = window.setTimeout(() => {
       setIsHovered(false)
     }, 150)
   }
 
   const handlePopupMouseEnter = () => {
-    // Cancelar el cierre si el mouse entra al popup
     if (leaveTimeoutRef.current) {
       clearTimeout(leaveTimeoutRef.current)
       leaveTimeoutRef.current = null
@@ -186,11 +121,9 @@ function CollapsedCategoryItem({ category }: { category: NavCategory }) {
   }
 
   const handlePopupMouseLeave = () => {
-    // Cerrar inmediatamente cuando sale del popup
     setIsHovered(false)
   }
 
-  // Limpiar timeout al desmontar
   useEffect(() => {
     return () => {
       if (leaveTimeoutRef.current) {
@@ -200,27 +133,27 @@ function CollapsedCategoryItem({ category }: { category: NavCategory }) {
   }, [])
 
   return (
-    <div 
+    <div
       className="relative"
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
-      <div 
+      <div
         className={clsx(
           'flex items-center justify-center p-2.5 rounded-xl transition-all duration-200 cursor-pointer group',
-          isHovered 
-            ? 'bg-gradient-to-r from-primary-50 to-primary-100 dark:from-primary-900/20 dark:to-primary-800/20 text-primary-600 dark:text-primary-400 scale-105 shadow-md shadow-primary-200/50 dark:shadow-primary-900/30' 
+          isHovered
+            ? 'bg-gradient-to-r from-primary-50 to-primary-100 dark:from-primary-900/20 dark:to-primary-800/20 text-primary-600 dark:text-primary-400 scale-105 shadow-md shadow-primary-200/50 dark:shadow-primary-900/30'
             : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
         )}
         title={category.name}
       >
-        <category.icon className="h-5 w-5 transition-transform duration-200 group-hover:scale-110" />
+        {category.icon && (() => { const Icon = category.icon; return <Icon className="h-5 w-5 transition-transform duration-200 group-hover:scale-110" /> })()}
       </div>
-      
+
       {isHovered && (
-        <div 
+        <div
           className="fixed w-64 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-200/50 dark:border-gray-700/50 py-2 animate-in fade-in slide-in-from-left-3 duration-200 backdrop-blur-xl"
-          style={{ 
+          style={{
             zIndex: 99999,
             left: '64px',
             top: `${popupTop}px`,
@@ -231,18 +164,16 @@ function CollapsedCategoryItem({ category }: { category: NavCategory }) {
           <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-primary-50/50 via-transparent to-transparent dark:from-primary-900/10">
             <div className="flex items-center gap-2.5">
               <div className="p-1.5 bg-gradient-to-br from-primary-600 to-primary-700 rounded-lg shadow-md">
-                <category.icon className="h-4 w-4 text-white" />
+                {category.icon && (() => { const Icon = category.icon; return <Icon className="h-4 w-4 text-white" /> })()}
               </div>
-              <span className="text-sm font-bold text-gray-900 dark:text-white">
-                {category.name}
-              </span>
+              <span className="text-sm font-bold text-gray-900 dark:text-white">{category.name}</span>
             </div>
           </div>
           <div className="max-h-[calc(100vh-200px)] overflow-y-auto custom-scrollbar px-2 py-1">
-            {category.items.map((item, index) => (
+            {category.items.map((item: MenuItemBase, index: number) => (
               <NavLink
                 key={item.name}
-                to={item.href}
+                to={item.href ?? '#'}
                 style={{ animationDelay: `${index * 30}ms` }}
                 className={({ isActive }) =>
                   clsx(
@@ -254,7 +185,7 @@ function CollapsedCategoryItem({ category }: { category: NavCategory }) {
                 }
                 onClick={() => isMobile && close()}
               >
-                <item.icon className="h-4 w-4 flex-shrink-0 transition-transform duration-200 group-hover:scale-110" />
+                {item.icon && (() => { const Icon = item.icon; return <Icon className="h-4 w-4 flex-shrink-0 transition-transform duration-200 group-hover:scale-110" /> })()}
                 <span className="flex-1">{item.name}</span>
                 {item.badge !== undefined && (
                   <span className="inline-flex items-center justify-center px-1.5 py-0.5 text-xs font-bold leading-none text-white bg-gradient-to-r from-red-600 to-red-700 rounded-full shadow-lg shadow-red-600/30 animate-pulse">
@@ -275,6 +206,7 @@ export function Sidebar() {
   const [expandedCategory, setExpandedCategory] = useState<string | null>(null)
   const [localWidth, setLocalWidth] = useState(256) // Default 256px (w-64)
   const [isResizing, setIsResizing] = useState(false)
+  const { menu } = useMenu()
 
   const minWidth = 200
   const maxWidth = 400
@@ -369,7 +301,8 @@ export function Sidebar() {
 
           {/* Navigation with scroll */}
           <nav className="flex-1 overflow-y-auto p-2.5 space-y-1 custom-scrollbar">
-            {navigation.map((item) => {
+            {/** Use dynamic menu filtered by permissions **/}
+            {menu.map((item) => {
               if (isCategory(item)) {
                 if (isOpen) {
                   // Sidebar expandido: mostrar categoría con sub-items
@@ -391,9 +324,9 @@ export function Sidebar() {
               if (isOpen) {
                 // Sidebar expandido: mostrar link normal
                 return (
-                  <NavLink
-                    key={item.name}
-                    to={item.href}
+          <NavLink
+            key={item.name}
+            to={item.href ?? '#'}
                     className={({ isActive }) =>
                       clsx(
                         'flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 group',
@@ -404,7 +337,7 @@ export function Sidebar() {
                     }
                     onClick={() => isMobile && close()}
                   >
-                    <item.icon className="h-5 w-5 flex-shrink-0 transition-transform duration-200 group-hover:scale-110" />
+                    {(() => { const Icon = item.icon; return Icon ? <Icon className="h-5 w-5 flex-shrink-0 transition-transform duration-200 group-hover:scale-110" /> : null })()}
                     <span className="transition-colors duration-200">{item.name}</span>
                     {item.badge !== undefined && (
                       <span className="ml-auto inline-flex items-center justify-center px-1.5 py-0.5 text-xs font-bold leading-none text-white bg-red-600 rounded-full animate-pulse">
@@ -416,9 +349,9 @@ export function Sidebar() {
               } else {
                 // Sidebar contraído: mostrar solo ícono
                 return (
-                  <NavLink
-                    key={item.name}
-                    to={item.href}
+          <NavLink
+            key={item.name}
+            to={item.href ?? '#'}
                     className={({ isActive }) =>
                       clsx(
                         'flex items-center justify-center p-2.5 rounded-xl text-sm font-medium transition-all duration-200 group',
@@ -430,7 +363,7 @@ export function Sidebar() {
                     onClick={() => isMobile && close()}
                     title={item.name}
                   >
-                    <item.icon className="h-5 w-5 flex-shrink-0 transition-transform duration-200 group-hover:scale-110" />
+                    {(() => { const Icon = item.icon; return Icon ? <Icon className="h-5 w-5 flex-shrink-0 transition-transform duration-200 group-hover:scale-110" /> : null })()}
                   </NavLink>
                 )
               }

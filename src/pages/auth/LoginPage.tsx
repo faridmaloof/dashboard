@@ -3,7 +3,7 @@
  */
 
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useAuth } from '@/hooks/useAuth'
 import { 
   UserIcon, 
   LockClosedIcon, 
@@ -15,24 +15,24 @@ import {
 import clsx from 'clsx'
 
 export function LoginPage() {
-  const navigate = useNavigate()
+  // useAuth.navigate performs navigation on success
   const [showPassword, setShowPassword] = useState(false)
   const [formData, setFormData] = useState({
     email: '',
     password: '',
     remember: false
   })
-  const [isLoading, setIsLoading] = useState(false)
+  const { loginAsync, isLoggingIn, loginError } = useAuth()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setIsLoading(true)
-    
-    // Simular login
-    setTimeout(() => {
-      setIsLoading(false)
-      navigate('/dashboard')
-    }, 1500)
+    const credentials = { email: formData.email, password: formData.password }
+    try {
+      // login puede ser síncrono o async
+      await loginAsync(credentials as any)
+    } catch (err) {
+      // el hook maneja el error en loginError
+    }
   }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -159,15 +159,15 @@ export function LoginPage() {
             <div>
               <button
                 type="submit"
-                disabled={isLoading}
+                disabled={isLoggingIn}
                 className={clsx(
                   'group relative w-full flex justify-center items-center gap-2 py-3 px-4 border border-transparent text-base font-semibold rounded-xl text-white transition-all duration-300',
-                  isLoading
+                  isLoggingIn
                     ? 'bg-gray-400 cursor-not-allowed'
                     : 'bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 shadow-lg hover:shadow-xl hover:shadow-primary-600/30 transform hover:-translate-y-0.5'
                 )}
               >
-                {isLoading ? (
+                {isLoggingIn ? (
                   <>
                     <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
@@ -183,6 +183,13 @@ export function LoginPage() {
                 )}
               </button>
             </div>
+
+            {/* Mostrar errores del login */}
+            {loginError && (
+              <div className="mt-4 p-3 bg-red-50 text-red-700 border border-red-200 rounded">
+                { (loginError as any)?.message || 'Error al iniciar sesión' }
+              </div>
+            )}
 
             {/* Demo credentials */}
             <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl">

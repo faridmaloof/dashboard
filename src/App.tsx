@@ -3,6 +3,7 @@
  */
 
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import RequireAuth from '@/components/layout/RequireAuth'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { MainLayout } from './components/layout/MainLayout'
 import { ToastContainer } from './components/ui/Toast'
@@ -34,16 +35,16 @@ function App() {
           
           {/* Protected routes */}
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
-          <Route path="/dashboard" element={<MainLayout><DashboardPage /></MainLayout>} />
-          <Route path="/components" element={<MainLayout><ComponentsPage /></MainLayout>} />
-          <Route path="/users" element={<MainLayout><UsersPage /></MainLayout>} />
-          <Route path="/processes" element={<MainLayout><ProcessesPage /></MainLayout>} />
-          <Route path="/reports" element={<MainLayout><div className="text-center py-12 text-gray-500">Página de Reportes - En construcción</div></MainLayout>} />
-          <Route path="/settings/profile" element={<MainLayout><ProfilePage /></MainLayout>} />
-          <Route path="/settings/general" element={<MainLayout><div className="text-center py-12 text-gray-500">Configuración General - En construcción</div></MainLayout>} />
-          <Route path="/settings/system" element={<MainLayout><div className="text-center py-12 text-gray-500">Configuración del Sistema - En construcción</div></MainLayout>} />
-          <Route path="/security/roles" element={<MainLayout><div className="text-center py-12 text-gray-500">Roles y Permisos - En construcción</div></MainLayout>} />
-          <Route path="/security/audit" element={<MainLayout><div className="text-center py-12 text-gray-500">Auditoría - En construcción</div></MainLayout>} />
+          <Route path="/dashboard" element={<RequireAuth><MainLayout><DashboardPage /></MainLayout></RequireAuth>} />
+          <Route path="/components" element={<RequireAuth><MainLayout><ComponentsPage /></MainLayout></RequireAuth>} />
+          <Route path="/users" element={<RequireAuth><MainLayout><UsersPage /></MainLayout></RequireAuth>} />
+          <Route path="/processes" element={<RequireAuth><MainLayout><ProcessesPage /></MainLayout></RequireAuth>} />
+          <Route path="/reports" element={<RequireAuth><MainLayout><div className="text-center py-12 text-gray-500">Página de Reportes - En construcción</div></MainLayout></RequireAuth>} />
+          <Route path="/settings/profile" element={<RequireAuth><MainLayout><ProfilePage /></MainLayout></RequireAuth>} />
+          <Route path="/settings/general" element={<RequireAuth><MainLayout><div className="text-center py-12 text-gray-500">Configuración General - En construcción</div></MainLayout></RequireAuth>} />
+          <Route path="/settings/system" element={<RequireAuth><MainLayout><div className="text-center py-12 text-gray-500">Configuración del Sistema - En construcción</div></MainLayout></RequireAuth>} />
+          <Route path="/security/roles" element={<RequireAuth><MainLayout><div className="text-center py-12 text-gray-500">Roles y Permisos - En construcción</div></MainLayout></RequireAuth>} />
+          <Route path="/security/audit" element={<RequireAuth><MainLayout><div className="text-center py-12 text-gray-500">Auditoría - En construcción</div></MainLayout></RequireAuth>} />
           <Route path="*" element={<MainLayout><div className="text-center py-12 text-gray-500">Página no encontrada</div></MainLayout>} />
         </Routes>
         <ToastContainer />

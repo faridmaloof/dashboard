@@ -18,6 +18,7 @@ import {
   UserIcon,
 } from '@heroicons/react/24/outline'
 import { Link, useLocation } from 'react-router-dom'
+import { useAuth } from '@/hooks/useAuth'
 import { useSidebarStore } from '@/store/sidebarStore'
 import { useThemeStore } from '@/store/themeStore'
 import { Breadcrumb } from '../ui/Breadcrumb'
@@ -313,27 +314,28 @@ export function Navbar() {
                       </div>
 
                       {/* Logout button */}
-                      <div className="border-t border-gray-200 dark:border-gray-700 pt-1 pb-1">
-                        <Menu.Item>
-                          {({ active }) => (
-                            <button
-                              onClick={() => {
-                                // Handle logout
-                                console.log('Logout clicked')
-                              }}
-                              className={clsx(
-                                'w-full flex items-center gap-3 px-3 py-2.5 text-sm rounded-lg transition-all duration-200',
-                                active
-                                  ? 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300'
-                                  : 'text-gray-700 dark:text-gray-300'
-                              )}
-                            >
-                              <ArrowRightOnRectangleIcon className="h-5 w-5" />
-                              Cerrar Sesión
-                            </button>
-                          )}
-                        </Menu.Item>
-                      </div>
+                                  <div className="border-t border-gray-200 dark:border-gray-700 pt-1 pb-1">
+                                    <Menu.Item>
+                                      {({ active }) => {
+                                        const { logout } = useAuth()
+                                        return (
+                                          <button
+                                            onClick={() => {
+                                              logout()
+                                            }}
+                                            className={clsx(
+                                              'w-full flex items-center gap-3 px-3 py-2.5 text-sm rounded-lg transition-all duration-200',
+                                              active
+                                                ? 'bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300'
+                                                : 'text-gray-700 dark:text-gray-300'
+                                            )}
+                                          >
+                                            <ArrowRightOnRectangleIcon className="h-5 w-5" />
+                                            Cerrar Sesión
+                                          </button>
+                                        )
+                                      }}</Menu.Item>
+                                  </div>
                     </div>
                   </Menu.Items>
                 </Transition>
