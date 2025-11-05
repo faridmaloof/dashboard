@@ -1,14 +1,18 @@
 import type { ComponentType } from 'react'
 import {
-  HomeIcon,
   UsersIcon,
   Cog6ToothIcon,
-  ChartBarIcon,
   CommandLineIcon,
   ShieldCheckIcon,
-  DocumentTextIcon,
   UserCircleIcon,
   Squares2X2Icon,
+  ChartPieIcon,
+  DocumentChartBarIcon,
+  FolderIcon,
+  ClipboardDocumentListIcon,
+  ShieldExclamationIcon,
+  WrenchScrewdriverIcon,
+  ServerIcon,
 } from '@heroicons/react/24/outline'
 
 export interface MenuItemBase {
@@ -30,23 +34,30 @@ export type MenuEntry = MenuItemBase | MenuCategory
 // Los `permission` son strings que deben coincidir con los proporcionados
 // en `user.permissions` desde el backend.
 export const MENU_CONFIG: MenuEntry[] = [
-  { name: 'Dashboard', href: '/dashboard', icon: HomeIcon },
-  { name: 'Componentes', href: '/components', icon: Squares2X2Icon },
+  { name: 'Dashboard', href: '/dashboard', icon: ChartPieIcon },
+  {
+    name: 'Componentes',
+    icon: Squares2X2Icon,
+    items: [
+      { name: 'UI', href: '/components', icon: Squares2X2Icon },
+      { name: 'Charts', href: '/charts', icon: ChartPieIcon },
+    ],
+  },
   {
     name: 'Gestión',
-    icon: DocumentTextIcon,
+    icon: FolderIcon,
     items: [
       { name: 'Usuarios', href: '/users', icon: UsersIcon, permission: 'users.view' },
       { name: 'Procesos', href: '/processes', icon: CommandLineIcon, permission: 'processes.view' },
-      { name: 'Reportes', href: '/reports', icon: ChartBarIcon, permission: 'reports.view' },
+      { name: 'Reportes', href: '/reports', icon: DocumentChartBarIcon, permission: 'reports.view' },
     ],
   },
   {
     name: 'Seguridad',
     icon: ShieldCheckIcon,
     items: [
-      { name: 'Roles y Permisos', href: '/security/roles', icon: ShieldCheckIcon, permission: 'roles.view' },
-      { name: 'Auditoría', href: '/security/audit', icon: DocumentTextIcon, permission: 'audit.view' },
+      { name: 'Roles y Permisos', href: '/security/roles', icon: ShieldExclamationIcon, permission: 'roles.view' },
+      { name: 'Auditoría', href: '/security/audit', icon: ClipboardDocumentListIcon, permission: 'audit.view' },
     ],
   },
   {
@@ -54,8 +65,8 @@ export const MENU_CONFIG: MenuEntry[] = [
     icon: Cog6ToothIcon,
     items: [
       { name: 'Perfil', href: '/settings/profile', icon: UserCircleIcon },
-      { name: 'General', href: '/settings/general', icon: Cog6ToothIcon, permission: 'settings.manage' },
-      { name: 'Sistema', href: '/settings/system', icon: Cog6ToothIcon, permission: 'system.manage' },
+      { name: 'General', href: '/settings/general', icon: WrenchScrewdriverIcon, permission: 'settings.manage' },
+      { name: 'Sistema', href: '/settings/system', icon: ServerIcon, permission: 'system.manage' },
     ],
   },
 ]

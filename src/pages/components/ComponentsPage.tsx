@@ -1,6 +1,6 @@
 /**
  * Página de demostración de componentes UI
- * Muestra todos los componentes disponibles con ejemplos
+ * Muestra todos los componentes disponibles con ejemplos y todas sus variantes
  */
 
 import { useState } from 'react'
@@ -36,6 +36,7 @@ import {
   Textarea,
   Tooltip,
 } from '@/components/ui'
+import { SearchModal } from '@/components/layout/SearchModal'
 import { 
   UserIcon, 
   HomeIcon, 
@@ -43,11 +44,16 @@ import {
   BellIcon,
   HeartIcon,
   StarIcon,
+  CheckCircleIcon,
+  ExclamationTriangleIcon,
+  InformationCircleIcon,
+  XCircleIcon,
 } from '@heroicons/react/24/outline'
 import type { BreadcrumbItem, DropdownItem, ListBoxOption, ListGroupItem, RadioOption, TabItem } from '@/components/ui'
 
 export default function ComponentsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false)
   const [switchValue, setSwitchValue] = useState(false)
   const [checkboxValue, setCheckboxValue] = useState(false)
   const [checkboxGroupValue, setCheckboxGroupValue] = useState<string[]>([])
@@ -494,22 +500,64 @@ export default function ComponentsPage() {
       <section>
         <SectionHeader 
           title="Tooltips" 
-          subtitle="Tooltips con posicionamiento en 4 direcciones"
+          subtitle="Tooltips con posicionamiento en 4 direcciones y tipos"
         />
         <Card>
-          <div className="flex gap-4">
-            <Tooltip content="Tooltip arriba" position="top">
-              <Button>Hover Top</Button>
-            </Tooltip>
-            <Tooltip content="Tooltip abajo" position="bottom">
-              <Button>Hover Bottom</Button>
-            </Tooltip>
-            <Tooltip content="Tooltip izquierda" position="left">
-              <Button>Hover Left</Button>
-            </Tooltip>
-            <Tooltip content="Tooltip derecha" position="right">
-              <Button>Hover Right</Button>
-            </Tooltip>
+          <div className="space-y-6">
+            {/* Posiciones */}
+            <div>
+              <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Posiciones</h4>
+              <div className="flex gap-4 flex-wrap">
+                <Tooltip content="Tooltip arriba" position="top">
+                  <Button>Hover Top</Button>
+                </Tooltip>
+                <Tooltip content="Tooltip abajo" position="bottom">
+                  <Button>Hover Bottom</Button>
+                </Tooltip>
+                <Tooltip content="Tooltip izquierda" position="left">
+                  <Button>Hover Left</Button>
+                </Tooltip>
+                <Tooltip content="Tooltip derecha" position="right">
+                  <Button>Hover Right</Button>
+                </Tooltip>
+              </div>
+            </div>
+
+            <Divider />
+
+            {/* Tipos con iconos */}
+            <div>
+              <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Tipos (con iconos)</h4>
+              <div className="flex gap-4 flex-wrap">
+                <Tooltip content="Información útil" type="info" showIcon>
+                  <Button variant="secondary">
+                    <InformationCircleIcon className="w-4 h-4" />
+                    Info
+                  </Button>
+                </Tooltip>
+                <Tooltip content="¡Operación exitosa!" type="success" showIcon>
+                  <Button variant="success">
+                    <CheckCircleIcon className="w-4 h-4" />
+                    Success
+                  </Button>
+                </Tooltip>
+                <Tooltip content="Ten cuidado con esta acción" type="warning" showIcon>
+                  <Button>
+                    <ExclamationTriangleIcon className="w-4 h-4" />
+                    Warning
+                  </Button>
+                </Tooltip>
+                <Tooltip content="Error al procesar" type="error" showIcon>
+                  <Button variant="danger">
+                    <XCircleIcon className="w-4 h-4" />
+                    Error
+                  </Button>
+                </Tooltip>
+                <Tooltip content="Tooltip por defecto" type="default">
+                  <Button variant="secondary">Default</Button>
+                </Tooltip>
+              </div>
+            </div>
           </div>
         </Card>
       </section>
@@ -555,6 +603,192 @@ export default function ComponentsPage() {
             <Badge variant="warning">Warning</Badge>
             <Badge variant="danger">Danger</Badge>
             <Badge variant="info">Info</Badge>
+          </div>
+        </Card>
+      </section>
+
+      <Divider />
+
+      {/* Search Modal */}
+      <section>
+        <SectionHeader 
+          title="Search Modal" 
+          subtitle="Buscador global con navegación por teclado (⌘K o Ctrl+K)"
+        />
+        <Card>
+          <div className="space-y-4">
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              Modal de búsqueda con resultados agrupados por categorías, soporte para múltiples fuentes de datos y atajos de teclado.
+            </p>
+            <Button onClick={() => setIsSearchModalOpen(true)}>
+              Abrir Buscador (o presiona ⌘K)
+            </Button>
+            <div className="mt-2 text-xs text-gray-500 dark:text-gray-400 space-y-1">
+              <p>✨ Características:</p>
+              <ul className="list-disc list-inside ml-2 space-y-1">
+                <li>Navegación con teclado (↑↓ Enter Esc)</li>
+                <li>Resultados agrupados por categorías</li>
+                <li>Headers no clicleables como separadores</li>
+                <li>Soporte para API externa o datos locales</li>
+                <li>Búsqueda con debounce automático</li>
+              </ul>
+            </div>
+          </div>
+        </Card>
+        <SearchModal 
+          isOpen={isSearchModalOpen} 
+          onClose={() => setIsSearchModalOpen(false)} 
+        />
+      </section>
+
+      <Divider />
+
+      {/* Logo Spinner Mejorado */}
+      <section>
+        <SectionHeader 
+          title="Logo Spinner" 
+          subtitle="Spinner del logo con múltiples variantes y opción de inversión de colores"
+        />
+        <Card>
+          <div className="space-y-8">
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              Animación mejorada con opción de invertir colores a mitad del giro. 
+              La inversión mantiene la ilusión visual en logos diagonales tipo "S cursiva".
+            </p>
+            
+            {/* Con inversión de colores */}
+            <div>
+              <h4 className="text-base font-bold text-gray-800 dark:text-gray-200 mb-4">
+                ✨ Con Inversión de Colores (invertColors=true)
+              </h4>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                Secuencia: <span className="font-mono">Positivo (0°) → Negativo (180°) → Positivo (360°)</span>
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="text-center space-y-3 p-4 bg-gray-50 dark:bg-gray-700/30 rounded-xl">
+                  <h5 className="text-sm font-semibold text-gray-700 dark:text-gray-300">Spin 2D</h5>
+                  <div className="flex justify-center py-4">
+                    <LogoSpinner variant="spin" size="lg" speed="normal" invertColors={true} />
+                  </div>
+                  <p className="text-xs text-gray-500">Rotación 2D con inversión</p>
+                  <code className="text-xs bg-gray-200 dark:bg-gray-800 px-2 py-1 rounded">
+                    invertColors=true
+                  </code>
+                </div>
+
+                <div className="text-center space-y-3 p-4 bg-gray-50 dark:bg-gray-700/30 rounded-xl">
+                  <h5 className="text-sm font-semibold text-gray-700 dark:text-gray-300">Flip 3D Vertical</h5>
+                  <div className="flex justify-center py-4">
+                    <LogoSpinner variant="flip" size="lg" speed="normal" invertColors={true} />
+                  </div>
+                  <p className="text-xs text-gray-500">Flip vertical con inversión</p>
+                  <code className="text-xs bg-gray-200 dark:bg-gray-800 px-2 py-1 rounded">
+                    invertColors=true
+                  </code>
+                </div>
+
+                <div className="text-center space-y-3 p-4 bg-gray-50 dark:bg-gray-700/30 rounded-xl">
+                  <h5 className="text-sm font-semibold text-gray-700 dark:text-gray-300">Flip 3D Horizontal</h5>
+                  <div className="flex justify-center py-4">
+                    <LogoSpinner variant="flipHorizontal" size="lg" speed="normal" invertColors={true} />
+                  </div>
+                  <p className="text-xs text-gray-500">Flip horizontal con inversión</p>
+                  <code className="text-xs bg-gray-200 dark:bg-gray-800 px-2 py-1 rounded">
+                    invertColors=true
+                  </code>
+                </div>
+              </div>
+            </div>
+
+            <Divider />
+
+            {/* Sin inversión de colores */}
+            <div>
+              <h4 className="text-base font-bold text-gray-800 dark:text-gray-200 mb-4">
+                🎨 Sin Inversión de Colores (invertColors=false)
+              </h4>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                Animación normal sin cambios de color. El logo mantiene sus colores originales durante todo el giro.
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="text-center space-y-3 p-4 bg-gray-50 dark:bg-gray-700/30 rounded-xl">
+                  <h5 className="text-sm font-semibold text-gray-700 dark:text-gray-300">Spin 2D</h5>
+                  <div className="flex justify-center py-4">
+                    <LogoSpinner variant="spin" size="lg" speed="normal" invertColors={false} />
+                  </div>
+                  <p className="text-xs text-gray-500">Rotación 2D normal</p>
+                  <code className="text-xs bg-gray-200 dark:bg-gray-800 px-2 py-1 rounded">
+                    invertColors=false
+                  </code>
+                </div>
+
+                <div className="text-center space-y-3 p-4 bg-gray-50 dark:bg-gray-700/30 rounded-xl">
+                  <h5 className="text-sm font-semibold text-gray-700 dark:text-gray-300">Flip 3D Vertical</h5>
+                  <div className="flex justify-center py-4">
+                    <LogoSpinner variant="flip" size="lg" speed="normal" invertColors={false} />
+                  </div>
+                  <p className="text-xs text-gray-500">Flip vertical normal</p>
+                  <code className="text-xs bg-gray-200 dark:bg-gray-800 px-2 py-1 rounded">
+                    invertColors=false
+                  </code>
+                </div>
+
+                <div className="text-center space-y-3 p-4 bg-gray-50 dark:bg-gray-700/30 rounded-xl">
+                  <h5 className="text-sm font-semibold text-gray-700 dark:text-gray-300">Flip 3D Horizontal</h5>
+                  <div className="flex justify-center py-4">
+                    <LogoSpinner variant="flipHorizontal" size="lg" speed="normal" invertColors={false} />
+                  </div>
+                  <p className="text-xs text-gray-500">Flip horizontal normal</p>
+                  <code className="text-xs bg-gray-200 dark:bg-gray-800 px-2 py-1 rounded">
+                    invertColors=false
+                  </code>
+                </div>
+              </div>
+            </div>
+
+            <Divider />
+
+            <div>
+              <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Velocidades (con inversión)</h4>
+              <div className="flex justify-around">
+                <div className="text-center space-y-2">
+                  <LogoSpinner variant="spin" size="md" speed="slow" invertColors />
+                  <p className="text-xs text-gray-500">Lento (2s)</p>
+                </div>
+                <div className="text-center space-y-2">
+                  <LogoSpinner variant="spin" size="md" speed="normal" invertColors />
+                  <p className="text-xs text-gray-500">Normal (1.5s)</p>
+                </div>
+                <div className="text-center space-y-2">
+                  <LogoSpinner variant="spin" size="md" speed="fast" invertColors />
+                  <p className="text-xs text-gray-500">Rápido (1s)</p>
+                </div>
+              </div>
+            </div>
+
+            <Divider />
+
+            <div>
+              <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">Tamaños</h4>
+              <div className="flex justify-around items-end">
+                <div className="text-center space-y-2">
+                  <LogoSpinner variant="spin" size="sm" speed="normal" invertColors />
+                  <p className="text-xs text-gray-500">Small</p>
+                </div>
+                <div className="text-center space-y-2">
+                  <LogoSpinner variant="spin" size="md" speed="normal" invertColors />
+                  <p className="text-xs text-gray-500">Medium</p>
+                </div>
+                <div className="text-center space-y-2">
+                  <LogoSpinner variant="spin" size="lg" speed="normal" invertColors />
+                  <p className="text-xs text-gray-500">Large</p>
+                </div>
+                <div className="text-center space-y-2">
+                  <LogoSpinner variant="spin" size="xl" speed="normal" invertColors />
+                  <p className="text-xs text-gray-500">Extra Large</p>
+                </div>
+              </div>
+            </div>
           </div>
         </Card>
       </section>

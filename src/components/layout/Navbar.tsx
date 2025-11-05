@@ -3,7 +3,7 @@
  */
 
 import { Menu, Transition } from '@headlessui/react'
-import { Fragment } from 'react'
+import { Fragment, useEffect } from 'react'
 import {
   Bars3Icon,
   BellIcon,
@@ -24,12 +24,21 @@ import { useThemeStore } from '@/store/themeStore'
 import { Breadcrumb } from '../ui/Breadcrumb'
 import type { BreadcrumbItem } from '../ui/Breadcrumb'
 import clsx from 'clsx'
-import SearchBar from './SearchBar'
+import { useState } from 'react'
+import { SearchModal } from './SearchModal'
+import { MagnifyingGlassIcon } from '@heroicons/react/24/outline'
 
 // Breadcrumb mapping with routes
 const breadcrumbMap: Record<string, BreadcrumbItem[]> = {
   '/dashboard': [{ label: 'Dashboard', href: '/dashboard' }],
-  '/components': [{ label: 'Componentes', href: '/components' }],
+  '/components': [
+    { label: 'Componentes', href: '/components' },
+    { label: 'UI', href: '/components' }
+  ],
+  '/charts': [
+    { label: 'Componentes', href: '/components' },
+    { label: 'Charts', href: '/charts' }
+  ],
   '/users': [
     { label: 'Gestión', href: '/users' },
     { label: 'Usuarios', href: '/users' }
@@ -96,9 +105,22 @@ export function Navbar() {
   const { toggle } = useSidebarStore()
   const { theme, toggleTheme } = useThemeStore()
   const location = useLocation()
+  const [isSearchOpen, setIsSearchOpen] = useState(false)
   
   const breadcrumbs = breadcrumbMap[location.pathname] || [{ label: 'Dashboard', href: '/dashboard' }]
   const unreadCount = notifications.filter(n => !n.read).length
+
+  // Atajo de teclado para abrir búsqueda
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault()
+        setIsSearchOpen(true)
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [])
 
   const getNotificationIcon = (type: string) => {
     switch (type) {
@@ -139,10 +161,28 @@ export function Navbar() {
 
         {/* Right side */}
         <div className="flex items-center gap-2">
-          {/* Top search - writes to global search store for consumers */}
-          <div className="hidden md:block">
-            <SearchBar placeholder="Buscar en el panel..." />
-          </div>
+          {/* Search Button - Trigger modal */}
+          <button
+            onClick={() => setIsSearchOpen(true)}
+            className="hidden md:flex items-center gap-2.5 px-3.5 py-2 text-sm text-gray-600 dark:text-gray-300 bg-gray-100/90 dark:bg-gray-700/60 hover:bg-gray-200/90 dark:hover:bg-gray-600/70 rounded-full transition-all duration-300 group border border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500 shadow-sm hover:shadow-md"
+            title="Buscar (⌘K)"
+          >
+            <MagnifyingGlassIcon className="h-4 w-4 group-hover:scale-110 transition-transform duration-300" />
+            <span className="hidden lg:inline font-medium">Buscar...</span>
+            <kbd className="hidden xl:inline-flex items-center gap-0.5 px-2 py-0.5 text-[10px] font-bold text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm">
+              ⌘K
+            </kbd>
+          </button>
+
+          {/* Mobile search button */}
+          <button
+            onClick={() => setIsSearchOpen(true)}
+            className="md:hidden p-2.5 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-all duration-200 rounded-full hover:bg-gray-100/80 dark:hover:bg-gray-700/80 shadow-sm hover:shadow-md"
+            title="Buscar"
+          >
+            <MagnifyingGlassIcon className="h-5 w-5" />
+          </button>
+
           {/* Theme toggle */}
           <button
             onClick={toggleTheme}
@@ -347,6 +387,9 @@ export function Navbar() {
           </Menu>
         </div>
       </div>
+
+      {/* Search Modal */}
+      <SearchModal isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
     </header>
   )
 }

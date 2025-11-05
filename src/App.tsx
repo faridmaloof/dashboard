@@ -13,6 +13,7 @@ import { UsersPage } from './pages/users/UsersPage'
 import { ProcessesPage } from './pages/processes/ProcessesPage'
 import { ProfilePage } from './pages/settings/ProfilePage'
 import ComponentsPage from './pages/components/ComponentsPage'
+import ChartsPage from './pages/charts/ChartsPage'
 
 // Configurar React Query
 const queryClient = new QueryClient({
@@ -37,6 +38,7 @@ function App() {
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
           <Route path="/dashboard" element={<RequireAuth><MainLayout><DashboardPage /></MainLayout></RequireAuth>} />
           <Route path="/components" element={<RequireAuth><MainLayout><ComponentsPage /></MainLayout></RequireAuth>} />
+          <Route path="/charts" element={<RequireAuth><MainLayout><ChartsPage /></MainLayout></RequireAuth>} />
           <Route path="/users" element={<RequireAuth><MainLayout><UsersPage /></MainLayout></RequireAuth>} />
           <Route path="/processes" element={<RequireAuth><MainLayout><ProcessesPage /></MainLayout></RequireAuth>} />
           <Route path="/reports" element={<RequireAuth><MainLayout><div className="text-center py-12 text-gray-500">Página de Reportes - En construcción</div></MainLayout></RequireAuth>} />

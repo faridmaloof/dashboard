@@ -8,8 +8,8 @@
  * 
  * @example
  * <LogoSpinner variant="spin" speed="normal" size="md" />
- * <LogoSpinner variant="flip" speed="fast" size="lg" />
- * <LogoSpinner variant="flipHorizontal" speed="slow" size="xl" />
+ * <LogoSpinner variant="flip" speed="fast" size="lg" invertColors />
+ * <LogoSpinner variant="flipHorizontal" speed="slow" size="xl" invertColors={false} />
  */
 
 import type { HTMLAttributes } from 'react'
@@ -26,6 +26,8 @@ interface LogoSpinnerProps extends Omit<HTMLAttributes<HTMLDivElement>, 'classNa
   speed?: SpinnerSpeed
   /** Tamaño del spinner */
   size?: SpinnerSize
+  /** Invertir colores a mitad del giro (mantiene ilusión en logos diagonales) */
+  invertColors?: boolean
   /** Clase CSS adicional */
   className?: string
 }
@@ -49,6 +51,7 @@ export function LogoSpinner({
   variant = 'spin',
   speed = 'normal',
   size = 'md',
+  invertColors = true,
   className,
   ...props
 }: LogoSpinnerProps) {
@@ -66,7 +69,8 @@ export function LogoSpinner({
           alt="Loading..."
           className={clsx(
             sizeClass,
-            'animate-spin object-contain'
+            invertColors ? 'animate-spin-invert' : 'animate-spin',
+            'object-contain'
           )}
           style={{
             animationDuration: `${duration}s`,
@@ -77,90 +81,48 @@ export function LogoSpinner({
   }
 
   if (variant === 'flipHorizontal') {
-    // 3D horizontal flip (moneda girando de lado a lado)
+    // 3D horizontal flip (moneda girando de lado a lado) con inversión de colores
     return (
       <div
         className={clsx('inline-flex items-center justify-center perspective-1000', className)}
         {...props}
       >
-        <div
+        <img
+          src="/Logo.png"
+          alt="Loading..."
           className={clsx(
             sizeClass,
-            'relative animate-flip-horizontal'
+            invertColors ? 'animate-flip-horizontal-invert' : 'animate-flip-horizontal',
+            'object-contain'
           )}
           style={{
             animationDuration: `${duration}s`,
             transformStyle: 'preserve-3d',
           }}
-        >
-          <img
-            src="/Logo.png"
-            alt="Loading..."
-            className={clsx(
-              sizeClass,
-              'absolute inset-0 object-contain backface-hidden'
-            )}
-            style={{
-              backfaceVisibility: 'hidden',
-            }}
-          />
-          <img
-            src="/Logo.png"
-            alt="Loading..."
-            className={clsx(
-              sizeClass,
-              'absolute inset-0 object-contain backface-hidden'
-            )}
-            style={{
-              transform: 'rotateX(180deg)',
-              backfaceVisibility: 'hidden',
-            }}
-          />
-        </div>
+        />
       </div>
     )
   }
 
-  // Variant: flip (3D vertical coin flip)
+  // Variant: flip (3D vertical coin flip) con inversión de colores
   return (
     <div
       className={clsx('inline-flex items-center justify-center perspective-1000', className)}
       {...props}
     >
-      <div
+      <img
+        src="/Logo.png"
+        alt="Loading..."
         className={clsx(
           sizeClass,
-          'relative animate-flip-3d'
+          invertColors ? 'animate-flip-3d-invert' : 'animate-flip-3d',
+          'object-contain'
         )}
         style={{
           animationDuration: `${duration}s`,
           transformStyle: 'preserve-3d',
         }}
-      >
-        <img
-          src="/Logo.png"
-          alt="Loading..."
-          className={clsx(
-            sizeClass,
-            'absolute inset-0 object-contain backface-hidden'
-          )}
-          style={{
-            backfaceVisibility: 'hidden',
-          }}
-        />
-        <img
-          src="/Logo.png"
-          alt="Loading..."
-          className={clsx(
-            sizeClass,
-            'absolute inset-0 object-contain backface-hidden'
-          )}
-          style={{
-            backfaceVisibility: 'hidden',
-            transform: 'rotateY(180deg)',
-          }}
-        />
-      </div>
+      />
     </div>
   )
 }
