@@ -1,110 +1,175 @@
 /**
- * Hook para ejecutar y gestionar procesos del sistema
- * Placeholder para funcionalidad futura
+ * Hook para ejecutar procesos especiales y conectar con otras APIs
+ * Permite ejecutar endpoints personalizados con monitoreo de estado
  */
 
-import { useState } from 'react'
-import { useMutation, useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { apiService } from '@/services/api.service'
-import { ENDPOINTS } from '@/config/api.config'
+import type { Process, ProcessExecution } from '@/types'
+import { ENDPOINTS } from '../config/api.config'
 
-export interface ProcessConfig {
-  id: string
-  name: string
-  description?: string
-  parameters?: Record<string, any>
+interface ExecuteProcessParams {
+  endpoint: string
+  method?: 'GET' | 'POST' | 'PUT' | 'DELETE'
+  data?: any
+  params?: Record<string, any>
 }
 
-export interface ProcessExecution {
-  processId: string
-  executionId: string
-  status: 'pending' | 'running' | 'completed' | 'failed'
-  progress?: number
-  result?: any
-  error?: string
-  startedAt?: string
-  completedAt?: string
-}
+export function useProcess() {
+  const queryClient = useQueryClient()
 
-/**
- * Hook principal para gestionar procesos
- */
-export function useProcess(processId?: string) {
-  const [currentExecution, setCurrentExecution] = useState<ProcessExecution | null>(null)
+  /**
+   * Listar procesos disponibles
+   */
+  const useProcessList = () => {
+    return useQuery<Process[]>({
+      queryKey: ['processes', 'list'],
+      queryFn: async () => {
+        const response = await apiService.get<Process[]>(ENDPOINTS.processes.list)
+        return response.data
+      },
+      staleTime: 1000 * 60 * 10, // 10 minutos
+    })
+  }
 
-  // Query para obtener lista de procesos disponibles
-  const processesQuery = useQuery({
-    queryKey: ['processes'],
-    queryFn: async () => {
-      const response = await apiService.get<ProcessConfig[]>(ENDPOINTS.processes.list)
-      return response.data
-    },
-    enabled: !processId, // Solo cargar lista si no se especifica un proceso
-  })
+  /**
+   * Ejecutar un proceso especial
+   */
+  const useExecuteProcess = () => {
+    return useMutation({
+      mutationFn: async (params: ExecuteProcessParams) => {
+        const { endpoint, method = 'POST', data, params: queryParams } = params
 
-  // Query para obtener estado de un proceso específico
-  const processStatusQuery = useQuery({
-    queryKey: ['process', 'status', processId, currentExecution?.executionId],
-    queryFn: async () => {
-      if (!currentExecution?.executionId) return null
-      const response = await apiService.get<ProcessExecution>(
-        ENDPOINTS.processes.status(currentExecution.executionId)
-      )
-      return response.data
-    },
-    enabled: !!currentExecution?.executionId,
-    refetchInterval: (query) => {
-      // Refetch mientras el proceso esté en ejecución
-      const data = query.state.data
-      if (data?.status === 'running' || data?.status === 'pending') {
-        return 2000 // 2 segundos
+        let response
+        switch (method) {
+          case 'GET':
+            response = await apiService.get(endpoint, { params: queryParams })
+            break
+          case 'POST':
+            response = await apiService.post(endpoint, data)
+            break
+          case 'PUT':
+            response = await apiService.put(endpoint, data)
+            break
+          case 'DELETE':
+            response = await apiService.delete(endpoint)
+            break
+          default:
+            throw new Error(`Método ${method} no soportado`)
+        }
+
+        return response.data
+      },
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ['processes', 'history'] })
+      },
+    })
+  }
+
+  /**
+   * Obtener estado de un proceso en ejecución
+   */
+  const useProcessStatus = (processId: string | number | null, enabled = true) => {
+    return useQuery<ProcessExecution>({
+      queryKey: ['processes', 'status', processId],
+      queryFn: async () => {
+        if (!processId) throw new Error('Process ID is required')
+        const response = await apiService.get<ProcessExecution>(
+          ENDPOINTS.processes.status(processId)
+        )
+        return response.data
+      },
+      enabled: enabled && !!processId,
+      refetchInterval: (query) => {
+        const data = query.state.data
+        // Refetch cada 2 segundos si está en ejecución
+        return data?.status === 'running' ? 2000 : false
+      },
+    })
+  }
+
+  /**
+   * Obtener historial de procesos ejecutados
+   */
+  const useProcessHistory = (filters?: { limit?: number; processId?: string | number }) => {
+    return useQuery<ProcessExecution[]>({
+      queryKey: ['processes', 'history', filters],
+      queryFn: async () => {
+        const response = await apiService.get<ProcessExecution[]>(
+          ENDPOINTS.processes.history,
+          { params: filters }
+        )
+        return response.data
+      },
+    })
+  }
+
+  /**
+   * Hook combinado para ejecutar y monitorear
+   */
+  const useExecuteAndMonitor = () => {
+    const executeMutation = useExecuteProcess()
+    const [currentProcessId, setCurrentProcessId] = React.useState<string | number | null>(null)
+    
+    const { data: status } = useProcessStatus(
+      currentProcessId,
+      !!currentProcessId && executeMutation.isSuccess
+    )
+
+    const execute = async (params: ExecuteProcessParams) => {
+      const result = await executeMutation.mutateAsync(params)
+      if (result?.id) {
+        setCurrentProcessId(result.id)
       }
-      return false
-    },
-  })
+      return result
+    }
 
-  // Mutation para ejecutar un proceso
-  const executeProcessMutation = useMutation({
-    mutationFn: async (params: { processId: string; parameters?: Record<string, any> }) => {
-      const response = await apiService.post<ProcessExecution>(ENDPOINTS.processes.execute, params)
-      return response.data
-    },
-    onSuccess: (data) => {
-      setCurrentExecution(data)
-    },
-  })
-
-  // Query para historial de ejecuciones
-  const historyQuery = useQuery({
-    queryKey: ['processes', 'history', processId],
-    queryFn: async () => {
-      const response = await apiService.get<ProcessExecution[]>(ENDPOINTS.processes.history, {
-        params: processId ? { processId } : undefined,
-      })
-      return response.data
-    },
-  })
+    return {
+      execute,
+      status,
+      isExecuting: executeMutation.isPending,
+      isMonitoring: !!currentProcessId && status?.status === 'running',
+      error: executeMutation.error,
+      reset: () => {
+        setCurrentProcessId(null)
+        executeMutation.reset()
+      },
+    }
+  }
 
   return {
-    // Datos
-    processes: processesQuery.data || [],
-    currentExecution: processStatusQuery.data || currentExecution,
-    history: historyQuery.data || [],
-
-    // Estado de carga
-    isLoadingProcesses: processesQuery.isLoading,
-    isExecuting: executeProcessMutation.isPending,
-    isLoadingStatus: processStatusQuery.isLoading,
-
-    // Acciones
-    executeProcess: executeProcessMutation.mutate,
-    executeProcessAsync: executeProcessMutation.mutateAsync,
-    refetchStatus: processStatusQuery.refetch,
-    refetchHistory: historyQuery.refetch,
-
-    // Errores
-    processesError: processesQuery.error,
-    executeError: executeProcessMutation.error,
-    statusError: processStatusQuery.error,
+    useProcessList,
+    useExecuteProcess,
+    useProcessStatus,
+    useProcessHistory,
+    useExecuteAndMonitor,
   }
 }
+
+// Para usar en componentes
+import React from 'react'
+
+/**
+ * Ejemplo de uso:
+ * 
+ * const { useExecuteProcess, useProcessStatus } = useProcess()
+ * const execute = useExecuteProcess()
+ * 
+ * const handleExecute = () => {
+ *   execute.mutate({
+ *     endpoint: '/api/custom-process',
+ *     method: 'POST',
+ *     data: { param1: 'value1' }
+ *   })
+ * }
+ * 
+ * // Con monitoreo:
+ * const { execute, status, isExecuting } = useExecuteAndMonitor()
+ * 
+ * await execute({
+ *   endpoint: '/api/long-running-process',
+ *   method: 'POST'
+ * })
+ * 
+ * // status se actualizará automáticamente
+ */

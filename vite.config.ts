@@ -13,104 +13,25 @@ export default defineConfig({
   build: {
     rollupOptions: {
       output: {
-        manualChunks(id) {
-          // Separar node_modules en chunks específicos
-          if (id.includes('node_modules')) {
-            // React core
-            if (id.includes('react') || id.includes('react-dom')) {
-              return 'react-vendor'
-            }
-            
-            // React Router
-            if (id.includes('react-router')) {
-              return 'router-vendor'
-            }
-            
-            // Chart.js y react-chartjs-2 (muy grandes)
-            if (id.includes('chart.js') || id.includes('react-chartjs-2')) {
-              return 'chart-vendor'
-            }
-            
-            // Recharts (alternativa a Chart.js)
-            if (id.includes('recharts')) {
-              return 'recharts-vendor'
-            }
-            
-            // TanStack Query y Table
-            if (id.includes('@tanstack/react-query')) {
-              return 'query-vendor'
-            }
-            if (id.includes('@tanstack/react-table')) {
-              return 'table-vendor'
-            }
-            
-            // Headless UI y Heroicons
-            if (id.includes('@headlessui')) {
-              return 'headlessui-vendor'
-            }
-            if (id.includes('@heroicons')) {
-              return 'heroicons-vendor'
-            }
-            
-            // Framer Motion (animaciones)
-            if (id.includes('framer-motion')) {
-              return 'motion-vendor'
-            }
-            
-            // Axios
-            if (id.includes('axios')) {
-              return 'axios-vendor'
-            }
-            
-            // Zustand (state management)
-            if (id.includes('zustand')) {
-              return 'zustand-vendor'
-            }
-            
-            // Date-fns
-            if (id.includes('date-fns')) {
-              return 'date-vendor'
-            }
-            
-            // Zod (validación)
-            if (id.includes('zod')) {
-              return 'zod-vendor'
-            }
-            
-            // clsx y otras utilidades pequeñas
-            if (id.includes('clsx') || id.includes('class-variance-authority')) {
-              return 'utils-vendor'
-            }
-            
-            // El resto de node_modules en un chunk genérico
-            return 'vendor'
-          }
+        manualChunks: {
+          // Separar React y React DOM en su propio chunk
+          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+          // Separar librerías de UI grandes
+          'ui-vendor': ['@headlessui/react', '@heroicons/react', 'framer-motion'],
+          // Separar librerías de data fetching y estado
+          'data-vendor': ['@tanstack/react-query', '@tanstack/react-table', 'zustand'],
+          // Separar librerías de gráficos
+          'chart-vendor': ['recharts'],
+          // Separar axios y utilidades
+          'utils-vendor': ['axios', 'clsx', 'date-fns', 'zod'],
         },
-        // Mejorar nombres de chunks para debugging y cache
+        // Mejorar nombres de chunks para debugging
         chunkFileNames: 'assets/[name]-[hash].js',
         entryFileNames: 'assets/[name]-[hash].js',
         assetFileNames: 'assets/[name]-[hash].[ext]',
       },
     },
-    // Configuración de optimización
-    target: 'es2015',
-    minify: 'esbuild',
-    sourcemap: false,
-    // Aumentar límite a 1000KB para evitar warnings innecesarios
-    // Los chunks lazy-loaded se cargarán bajo demanda
-    chunkSizeWarningLimit: 1000,
-    cssCodeSplit: true,
-  },
-  // Optimización de dependencias
-  optimizeDeps: {
-    include: [
-      'react',
-      'react-dom',
-      'react-router-dom',
-      '@tanstack/react-query',
-      '@tanstack/react-table',
-      'axios',
-      'zustand',
-    ],
+    // Aumentar límite a 700KB ya que con lazy loading el chunk inicial será más pequeño
+    chunkSizeWarningLimit: 700,
   },
 })

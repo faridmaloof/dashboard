@@ -1,94 +1,97 @@
 /**
- * Hook genérico para llamadas a API con React Query
- * Wrapper conveniente sobre useQuery y useMutation
+ * Hook personalizado para hacer llamadas a la API con React Query
  */
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import type { UseQueryOptions, UseMutationOptions, UseQueryResult, UseMutationResult } from '@tanstack/react-query'
+import type { UseQueryOptions, UseMutationOptions } from '@tanstack/react-query'
 import { apiService } from '@/services/api.service'
-import type { ApiResponse } from '@/types'
+import type { ApiResponse, ApiError } from '@/types'
 
-export interface UseApiQueryOptions<TData = any> extends Omit<UseQueryOptions<TData>, 'queryKey' | 'queryFn'> {
-  url: string | ((params: any) => string)
+interface UseApiQueryOptions<T> extends Omit<UseQueryOptions<ApiResponse<T>, ApiError>, 'queryKey' | 'queryFn'> {
+  url: string
   params?: Record<string, any>
-  method?: 'get' | 'post'
 }
 
-export interface UseApiMutationOptions<TData = any, TVariables = any> 
-  extends Omit<UseMutationOptions<TData, Error, TVariables>, 'mutationFn'> {
-  url: string | ((data: TVariables) => string)
-  method?: 'post' | 'put' | 'patch' | 'delete'
-  invalidateQueries?: any[] // Query keys to invalidate after mutation
+interface UseApiMutationOptions<TData, TVariables> extends UseMutationOptions<ApiResponse<TData>, ApiError, TVariables> {
+  url: string | ((variables: TVariables) => string)
+  method?: 'POST' | 'PUT' | 'DELETE' | 'PATCH'
+  invalidateQueries?: string[]
 }
 
 /**
- * Hook para queries (GET) con React Query
+ * Hook para peticiones GET con caché
  */
-export function useApiQuery<TData = any>(
-  queryKey: any[],
-  options: UseApiQueryOptions<TData>
-): UseQueryResult<TData> {
-  const { url, params, method = 'get', ...queryOptions } = options
+export function useApiQuery<T = any>(
+  queryKey: string | string[],
+  options: UseApiQueryOptions<T>
+) {
+  const { url, params, ...queryOptions } = options
 
-  return useQuery({
-    queryKey,
-    queryFn: async (): Promise<TData> => {
-      const endpoint = typeof url === 'function' ? url(params) : url
-      
-      if (method === 'get') {
-        const response = await apiService.get<TData>(endpoint, { params })
-        return response.data as TData
-      } else {
-        const response = await apiService.post<TData>(endpoint, params)
-        return response.data as TData
-      }
-    },
+  return useQuery<ApiResponse<T>, ApiError>({
+    queryKey: Array.isArray(queryKey) ? [...queryKey, params] : [queryKey, params],
+    queryFn: () => apiService.get<T>(url, { params }),
     ...queryOptions,
-  }) as UseQueryResult<TData>
+  })
 }
 
 /**
- * Hook para mutations (POST, PUT, PATCH, DELETE) con React Query
+ * Hook para mutaciones (POST, PUT, DELETE, PATCH)
  */
 export function useApiMutation<TData = any, TVariables = any>(
   options: UseApiMutationOptions<TData, TVariables>
-): UseMutationResult<TData, Error, TVariables> {
-  const { url, method = 'post', invalidateQueries, ...mutationOptions } = options
+) {
   const queryClient = useQueryClient()
+  const { url, method = 'POST', invalidateQueries = [], ...mutationOptions } = options
 
-  return useMutation({
-    mutationFn: async (variables: TVariables) => {
+  return useMutation<ApiResponse<TData>, ApiError, TVariables>({
+    mutationFn: async (variables) => {
       const endpoint = typeof url === 'function' ? url(variables) : url
-      
-      let response: ApiResponse<TData>
-      
+
       switch (method) {
-        case 'post':
-          response = await apiService.post<TData>(endpoint, variables)
-          break
-        case 'put':
-          response = await apiService.put<TData>(endpoint, variables)
-          break
-        case 'patch':
-          response = await apiService.patch<TData>(endpoint, variables)
-          break
-        case 'delete':
-          response = await apiService.delete<TData>(endpoint)
-          break
+        case 'POST':
+          return apiService.post<TData>(endpoint, variables)
+        case 'PUT':
+          return apiService.put<TData>(endpoint, variables)
+        case 'DELETE':
+          return apiService.delete<TData>(endpoint)
+        case 'PATCH':
+          return apiService.patch<TData>(endpoint, variables)
         default:
-          throw new Error(`Método HTTP no soportado: ${method}`)
+          throw new Error(`Método ${method} no soportado`)
       }
-      
-      return response.data
+    },
+    onSuccess: (data, variables, context, extra) => {
+      // Invalidar queries especificadas
+      invalidateQueries.forEach((key) => {
+        queryClient.invalidateQueries({ queryKey: [key] })
+      })
+
+      // Llamar al callback original si existe
+      mutationOptions.onSuccess?.(data, variables, context, extra)
     },
     ...mutationOptions,
-    onSettled: async () => {
-      // Invalidate queries after mutation settles (success or error)
-      if (invalidateQueries) {
-        for (const queryKey of invalidateQueries) {
-          await queryClient.invalidateQueries({ queryKey: Array.isArray(queryKey) ? queryKey : [queryKey] })
-        }
-      }
+  })
+}
+
+/**
+ * Hook para subir archivos
+ */
+export function useUploadFile(
+  url: string,
+  options?: {
+    onProgress?: (progress: number) => void
+    onSuccess?: (data: any) => void
+    onError?: (error: ApiError) => void
+  }
+) {
+  const queryClient = useQueryClient()
+
+  return useMutation<ApiResponse<any>, ApiError, FormData>({
+    mutationFn: (formData) => apiService.upload(url, formData, options?.onProgress),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['files'] })
+      options?.onSuccess?.(data)
     },
-  } as any)
+    onError: options?.onError,
+  })
 }

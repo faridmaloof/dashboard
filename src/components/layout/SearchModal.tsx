@@ -19,6 +19,7 @@ import {
   CogIcon,
   ChartBarIcon,
   FolderIcon,
+  CommandLineIcon,
 } from '@heroicons/react/24/outline'
 import { useNavigate } from 'react-router-dom'
 import clsx from 'clsx'
@@ -56,21 +57,33 @@ interface SearchModalProps {
 // Datos de ejemplo (puedes reemplazar con API)
 const defaultCategories: SearchCategory[] = [
   { id: 'pages', name: 'Páginas', icon: DocumentTextIcon },
-  { id: 'config', name: 'Parámetros', icon: CogIcon },
   { id: 'users', name: 'Usuarios', icon: UserGroupIcon },
+  { id: 'settings', name: 'Configuración', icon: CogIcon },
+  { id: 'reports', name: 'Reportes', icon: ChartBarIcon },
+  { id: 'files', name: 'Archivos', icon: FolderIcon },
+  { id: 'commands', name: 'Comandos', icon: CommandLineIcon },
 ]
 
 const defaultData: SearchResult[] = [
-  // Páginas principales
+  // Páginas
   { id: '1', title: 'Dashboard', description: 'Panel principal', category: 'pages', href: '/dashboard', icon: ChartBarIcon },
-  { id: '2', title: 'Usuarios', description: 'Gestión de usuarios', category: 'pages', href: '/users', icon: UserGroupIcon },
-  { id: '3', title: 'Mi Perfil', description: 'Configurar tu perfil', category: 'pages', href: '/settings/profile', icon: CogIcon },
+  { id: '2', title: 'Componentes', description: 'Galería de componentes UI', category: 'pages', href: '/components', icon: FolderIcon },
+  { id: '3', title: 'Usuarios', description: 'Gestión de usuarios', category: 'pages', href: '/users', icon: UserGroupIcon },
+  { id: '4', title: 'Procesos', description: 'Gestión de procesos', category: 'pages', href: '/processes', icon: CogIcon },
   
-  // Parámetros / Configuración
-  { id: '4', title: 'Cajas Registradoras', description: 'Gestión de cajas registradoras', category: 'config', href: '/config/cash-registers', icon: CogIcon },
-  { id: '5', title: 'Clientes', description: 'Gestión de clientes', category: 'config', href: '/config/customers', icon: UserGroupIcon },
-  { id: '6', title: 'Artículos', description: 'Gestión de productos y servicios', category: 'config', href: '/config/items', icon: FolderIcon },
-  { id: '7', title: 'Tipos de Documento', description: 'Configuración de tipos de documento', category: 'config', href: '/config/document-types', icon: DocumentTextIcon },
+  // Usuarios (datos de ejemplo)
+  { id: '5', title: 'Juan Pérez', description: 'juan.perez@example.com', category: 'users', href: '/users/1', icon: UserGroupIcon },
+  { id: '6', title: 'María García', description: 'maria.garcia@example.com', category: 'users', href: '/users/2', icon: UserGroupIcon },
+  { id: '7', title: 'Carlos Rodríguez', description: 'carlos.rodriguez@example.com', category: 'users', href: '/users/3', icon: UserGroupIcon },
+  
+  // Configuración
+  { id: '8', title: 'Perfil', description: 'Configurar tu perfil', category: 'settings', href: '/settings/profile', icon: CogIcon },
+  { id: '9', title: 'Seguridad', description: 'Roles y permisos', category: 'settings', href: '/security/roles', icon: CogIcon },
+  { id: '10', title: 'Sistema', description: 'Configuración del sistema', category: 'settings', href: '/settings/system', icon: CogIcon },
+  
+  // Reportes
+  { id: '11', title: 'Ventas Mensuales', description: 'Reporte de ventas del mes', category: 'reports', icon: ChartBarIcon },
+  { id: '12', title: 'Usuarios Activos', description: 'Estadísticas de usuarios', category: 'reports', icon: ChartBarIcon },
 ]
 
 export function SearchModal({

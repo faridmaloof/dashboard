@@ -1,6 +1,10 @@
+/**
+ * Store de Zustand para el estado del sidebar
+ */
+
 import { create } from 'zustand'
 
-interface SidebarState {
+interface SidebarStore {
   isOpen: boolean
   isMobile: boolean
   sidebarWidth: number
@@ -11,13 +15,13 @@ interface SidebarState {
   setSidebarWidth: (width: number) => void
 }
 
-export const useSidebarStore = create<SidebarState>((set) => ({
+export const useSidebarStore = create<SidebarStore>((set) => ({
   isOpen: true,
   isMobile: false,
-  sidebarWidth: 240,
+  sidebarWidth: 256,
   open: () => set({ isOpen: true }),
   close: () => set({ isOpen: false }),
   toggle: () => set((state) => ({ isOpen: !state.isOpen })),
-  setMobile: (isMobile) => set({ isMobile, isOpen: !isMobile }),
+  setMobile: (isMobile) => set({ isMobile }),
   setSidebarWidth: (width) => set({ sidebarWidth: width }),
 }))

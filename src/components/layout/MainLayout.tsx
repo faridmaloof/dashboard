@@ -27,17 +27,17 @@ export function MainLayout({ children }: MainLayoutProps) {
 
   const getMarginLeft = () => {
     if (isMobile) return 0
-    if (!isOpen) return 69 // Collapsed: 69px (ancho aumentado +5px)
-    return sidebarWidth // Expanded: dynamic width
+    if (!isOpen) return 63 // Colapsado: 63px
+    return sidebarWidth // Expandido: ancho dinámico
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900" style={{ overflowX: 'clip' }}>
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <Sidebar />
       
       <div
-        style={{ marginLeft: `${getMarginLeft()}px`, overflowX: 'clip' }}
-        className="transition-all duration-300 ease-out min-h-screen"
+        style={{ marginLeft: `${getMarginLeft()}px` }}
+        className="transition-all duration-500 ease-out"
       >
         <Navbar />
         

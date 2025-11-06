@@ -53,7 +53,7 @@ export function useCrud<T = any>(options: UseCrudOptions) {
   const useCreate = () => {
     return useApiMutation<T, Partial<T>>({
       url: endpoint,
-      method: 'post',
+      method: 'POST',
       invalidateQueries: [queryKey],
     })
   }
@@ -63,8 +63,8 @@ export function useCrud<T = any>(options: UseCrudOptions) {
    */
   const useUpdate = () => {
     return useApiMutation<T, { id: string | number; data: Partial<T> }>({
-      url: ({ id }: { id: string | number }) => `${endpoint}/${id}`,
-      method: 'put',
+      url: ({ id }) => `${endpoint}/${id}`,
+      method: 'PUT',
       invalidateQueries: [queryKey],
     })
   }
@@ -74,8 +74,8 @@ export function useCrud<T = any>(options: UseCrudOptions) {
    */
   const useDelete = () => {
     return useApiMutation<void, string | number>({
-      url: (id: string | number) => `${endpoint}/${id}`,
-      method: 'delete',
+      url: (id) => `${endpoint}/${id}`,
+      method: 'DELETE',
       invalidateQueries: [queryKey],
     })
   }
@@ -86,7 +86,7 @@ export function useCrud<T = any>(options: UseCrudOptions) {
   const useBulkDelete = () => {
     return useApiMutation<void, (string | number)[]>({
       url: `${endpoint}/bulk-delete`,
-      method: 'post',
+      method: 'POST',
       invalidateQueries: [queryKey],
     })
   }

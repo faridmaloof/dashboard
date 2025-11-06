@@ -1,15 +1,18 @@
 import type { ComponentType } from 'react'
 import {
   UsersIcon,
-  UserCircleIcon,
-  ChartPieIcon,
-  WrenchScrewdriverIcon,
-  CurrencyDollarIcon,
-  UserGroupIcon,
-  CubeIcon,
-  DocumentTextIcon,
+  Cog6ToothIcon,
+  CommandLineIcon,
   ShieldCheckIcon,
-  KeyIcon,
+  UserCircleIcon,
+  Squares2X2Icon,
+  ChartPieIcon,
+  DocumentChartBarIcon,
+  FolderIcon,
+  ClipboardDocumentListIcon,
+  ShieldExclamationIcon,
+  WrenchScrewdriverIcon,
+  ServerIcon,
 } from '@heroicons/react/24/outline'
 
 export interface MenuItemBase {
@@ -33,23 +36,37 @@ export type MenuEntry = MenuItemBase | MenuCategory
 export const MENU_CONFIG: MenuEntry[] = [
   { name: 'Dashboard', href: '/dashboard', icon: ChartPieIcon },
   {
-    name: 'Seguridad',
-    icon: ShieldCheckIcon,
+    name: 'Componentes',
+    icon: Squares2X2Icon,
     items: [
-      { name: 'Usuarios', href: '/users', icon: UsersIcon, permission: 'usr.lst' },
-      { name: 'Roles', href: '/security/roles', icon: ShieldCheckIcon, permission: 'rls.lst' },
-      { name: 'Accesos', href: '/security/accesses', icon: KeyIcon, permission: 'acc.lst' },
+      { name: 'UI', href: '/components', icon: Squares2X2Icon },
+      { name: 'Charts', href: '/charts', icon: ChartPieIcon },
     ],
   },
   {
-    name: 'Parámetros',
-    icon: WrenchScrewdriverIcon,
+    name: 'Gestión',
+    icon: FolderIcon,
     items: [
-      { name: 'Cajas Registradoras', href: '/config/cash-registers', icon: CurrencyDollarIcon, permission: 'csr.lst' },
-      { name: 'Clientes', href: '/config/customers', icon: UserGroupIcon, permission: 'cli.lst' },
-      { name: 'Artículos', href: '/config/items', icon: CubeIcon, permission: 'itm.lst' },
-      { name: 'Tipos de Documento', href: '/config/document-types', icon: DocumentTextIcon, permission: 'dct.lst' },
+      { name: 'Usuarios', href: '/users', icon: UsersIcon, permission: 'users.view' },
+      { name: 'Procesos', href: '/processes', icon: CommandLineIcon, permission: 'processes.view' },
+      { name: 'Reportes', href: '/reports', icon: DocumentChartBarIcon, permission: 'reports.view' },
+    ],
+  },
+  {
+    name: 'Seguridad',
+    icon: ShieldCheckIcon,
+    items: [
+      { name: 'Roles y Permisos', href: '/security/roles', icon: ShieldExclamationIcon, permission: 'roles.view' },
+      { name: 'Auditoría', href: '/security/audit', icon: ClipboardDocumentListIcon, permission: 'audit.view' },
+    ],
+  },
+  {
+    name: 'Configuración',
+    icon: Cog6ToothIcon,
+    items: [
       { name: 'Perfil', href: '/settings/profile', icon: UserCircleIcon },
+      { name: 'General', href: '/settings/general', icon: WrenchScrewdriverIcon, permission: 'settings.manage' },
+      { name: 'Sistema', href: '/settings/system', icon: ServerIcon, permission: 'system.manage' },
     ],
   },
 ]

@@ -9,7 +9,6 @@ import {
   TrashIcon,
   EyeIcon,
   DocumentDuplicateIcon,
-  PowerIcon,
 } from '@heroicons/react/24/solid'
 import clsx from 'clsx'
 import type { ReactNode } from 'react'
@@ -18,16 +17,15 @@ interface Action {
   label: string
   icon?: ReactNode
   onClick: () => void
-  variant?: 'default' | 'danger' | 'warning'
+  variant?: 'default' | 'danger'
   show?: boolean
 }
 
-export interface CrudActionsProps {
+interface CrudActionsProps {
   onEdit?: () => void
   onDelete?: () => void
   onView?: () => void
   onDuplicate?: () => void
-  onToggleActive?: () => void
   customActions?: Action[]
 }
 
@@ -36,7 +34,6 @@ export function CrudActions({
   onDelete,
   onView,
   onDuplicate,
-  onToggleActive,
   customActions = [],
 }: CrudActionsProps) {
   const defaultActions: Action[] = [
@@ -56,13 +53,6 @@ export function CrudActions({
       label: 'Duplicar',
       icon: <DocumentDuplicateIcon className="h-4 w-4" />,
       onClick: onDuplicate,
-      show: true,
-    },
-    onToggleActive && {
-      label: 'Cambiar estado',
-      icon: <PowerIcon className="h-4 w-4" />,
-      onClick: onToggleActive,
-      variant: 'warning' as const,
       show: true,
     },
     onDelete && {
@@ -99,8 +89,6 @@ export function CrudActions({
                     active && 'bg-gray-100 dark:bg-gray-700',
                     action.variant === 'danger'
                       ? 'text-red-600 dark:text-red-400'
-                      : action.variant === 'warning'
-                      ? 'text-yellow-600 dark:text-yellow-400'
                       : 'text-gray-700 dark:text-gray-300'
                   )}
                 >
