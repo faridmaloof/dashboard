@@ -1,403 +1,326 @@
 /**
- * Componente Sidebar con menú colapsable, categorías y animaciones mejoradas
+ * Componente Sidebar - Menú lateral de navegación
  */
 
 import { NavLink } from 'react-router-dom'
-import { useState, useEffect, useRef } from 'react'
-import type { MouseEvent as ReactMouseEvent } from 'react'
-import { XMarkIcon, ChevronRightIcon } from '@heroicons/react/24/outline'
-import clsx from 'clsx'
+import { ChevronDownIcon, ChevronRightIcon } from '@heroicons/react/24/outline'
 import { useSidebarStore } from '@/store/sidebarStore'
-import { useConfig } from '@/contexts/ConfigContext'
-import type { MenuEntry, MenuCategory, MenuItemBase } from '@/config/menu.config'
-
 import { useMenu } from '@/hooks/useMenu'
-import { IconRenderer } from '@/components/ui/IconRenderer'
+import { useState, useEffect, useCallback, useRef } from 'react'
+import clsx from 'clsx'
+import { useConfig } from '@/contexts/ConfigContext'
+import type { MenuCategory, MenuItemBase, MenuEntry } from '@/config/menu.config'
 
-function isCategory(item: MenuEntry): item is MenuCategory {
-  return !!(item && (item as any).items && Array.isArray((item as any).items))
-}
+export function Sidebar() {
+  const { isOpen, isMobile, close, sidebarWidth, setSidebarWidth } = useSidebarStore()
+  const { menu } = useMenu()
+  const { config } = useConfig()
+  const [openCategories, setOpenCategories] = useState<Set<string>>(new Set())
+  const [isResizing, setIsResizing] = useState(false)
+  const [hoveredCategory, setHoveredCategory] = useState<string | null>(null)
+  const hoverTimeoutRef = useRef<number | null>(null)
 
-function CategoryItem({ category, isExpanded, onToggle }: { category: MenuCategory; isExpanded: boolean; onToggle: () => void }) {
-  const { isMobile, close } = useSidebarStore()
+  const toggleCategory = (name: string) => {
+    setOpenCategories((prev) => {
+      const newSet = new Set<string>()
+      // Si la categoría ya estaba abierta, la cerramos (set vacío)
+      // Si no, abrimos solo esta (accordion - una a la vez)
+      if (!prev.has(name)) {
+        newSet.add(name)
+      }
+      return newSet
+    })
+  }
 
-  return (
-    <div className="overflow-hidden">
-      <button
-        onClick={onToggle}
-        className="w-full flex items-center justify-between px-3 py-2.5 text-xs font-semibold text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-all duration-200 uppercase tracking-wider group"
-      >
-        <div className="flex items-center gap-2.5">
-          {category.icon && (() => {
-            const Icon = category.icon
-            return <Icon className="h-4 w-4 flex-shrink-0 transition-transform duration-200 group-hover:scale-110" />
-          })()}
-          <span className="transition-colors duration-200">{category.name}</span>
-        </div>
-        <ChevronRightIcon
-          className={clsx(
-            'h-3.5 w-3.5 transition-all duration-300 ease-out',
-            isExpanded ? 'rotate-90 text-primary-600 dark:text-primary-400' : 'text-gray-400'
-          )}
-        />
-      </button>
+  const startResizing = useCallback((e: React.MouseEvent) => {
+    e.preventDefault()
+    setIsResizing(true)
+  }, [])
 
-      <div
-        className={clsx(
-          'overflow-hidden transition-all duration-300 ease-in-out',
-          isExpanded ? 'max-h-96 opacity-100 mt-1' : 'max-h-0 opacity-0'
-        )}
-      >
-        <div className="ml-4 space-y-0.5 animate-in slide-in-from-top-2">
-          {category.items.map((item: MenuItemBase, index: number) => (
-            <NavLink
-              key={item.name}
-              to={item.href ?? '#'}
-              style={{ animationDelay: `${index * 50}ms` }}
-              className={({ isActive }) =>
-                clsx(
-                  'flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all duration-200 group',
-                  isActive
-                    ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 font-medium shadow-sm'
-                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:translate-x-0.5'
-                )
-              }
-              onClick={() => isMobile && close()}
-            >
-              {item.icon && (() => { const Icon = item.icon; return <Icon className="h-4 w-4 flex-shrink-0 transition-transform duration-200 group-hover:scale-110" /> })()}
-              <span className="transition-colors duration-200">{item.name}</span>
-              {item.badge !== undefined && (
-                <span className="ml-auto inline-flex items-center justify-center px-1.5 py-0.5 text-xs font-bold leading-none text-white bg-red-600 rounded-full animate-pulse">
-                  {item.badge}
-                </span>
-              )}
-            </NavLink>
-          ))}
-        </div>
-      </div>
-    </div>
-  )
-}
+  const stopResizing = useCallback(() => {
+    setIsResizing(false)
+  }, [])
 
-function CollapsedCategoryItem({ category }: { category: MenuCategory }) {
-  const [isHovered, setIsHovered] = useState(false)
-  const [popupTop, setPopupTop] = useState<number>(0)
-  const { isMobile, close } = useSidebarStore()
-  const leaveTimeoutRef = useRef<number | null>(null)
-
-  const handleMouseEnter = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (leaveTimeoutRef.current) {
-      clearTimeout(leaveTimeoutRef.current)
-      leaveTimeoutRef.current = null
+  const resize = useCallback((e: MouseEvent) => {
+    if (isResizing) {
+      const newWidth = e.clientX
+      if (newWidth >= 200 && newWidth <= 400) {
+        setSidebarWidth(newWidth)
+      }
     }
-
-    setIsHovered(true)
-
-    const rect = e.currentTarget.getBoundingClientRect()
-    const buttonTop = rect.top - 12
-    const popupMaxHeight = Math.min(400, window.innerHeight - 200)
-    const spaceBelow = window.innerHeight - rect.bottom
-
-    if (spaceBelow < popupMaxHeight && rect.top > spaceBelow) {
-      setPopupTop(buttonTop - popupMaxHeight)
-    } else {
-      setPopupTop(buttonTop)
-    }
-  }
-
-  const handleMouseLeave = () => {
-    leaveTimeoutRef.current = window.setTimeout(() => {
-      setIsHovered(false)
-    }, 150)
-  }
-
-  const handlePopupMouseEnter = () => {
-    if (leaveTimeoutRef.current) {
-      clearTimeout(leaveTimeoutRef.current)
-      leaveTimeoutRef.current = null
-    }
-    setIsHovered(true)
-  }
-
-  const handlePopupMouseLeave = () => {
-    setIsHovered(false)
-  }
+  }, [isResizing, setSidebarWidth])
 
   useEffect(() => {
+    window.addEventListener('mousemove', resize)
+    window.addEventListener('mouseup', stopResizing)
+
     return () => {
-      if (leaveTimeoutRef.current) {
-        clearTimeout(leaveTimeoutRef.current)
+      window.removeEventListener('mousemove', resize)
+      window.removeEventListener('mouseup', stopResizing)
+    }
+  }, [resize, stopResizing])
+
+  // Cleanup hover timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (hoverTimeoutRef.current) {
+        window.clearTimeout(hoverTimeoutRef.current)
       }
     }
   }, [])
 
-  return (
-    <div
-      className="relative"
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-    >
-      <div
-        className={clsx(
-          'flex items-center justify-center p-2.5 rounded-xl transition-all duration-200 cursor-pointer group',
-          isHovered
-            ? 'bg-gradient-to-r from-primary-50 to-primary-100 dark:from-primary-900/20 dark:to-primary-800/20 text-primary-600 dark:text-primary-400 scale-105 shadow-md shadow-primary-200/50 dark:shadow-primary-900/30'
-            : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
-        )}
-        title={category.name}
-      >
-        {category.icon && (() => { const Icon = category.icon; return <Icon className="h-5 w-5 transition-transform duration-200 group-hover:scale-110" /> })()}
-      </div>
-
-      {isHovered && (
-        <div
-          className="fixed w-64 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-200/50 dark:border-gray-700/50 py-2 animate-in fade-in slide-in-from-left-3 duration-200 backdrop-blur-xl"
-          style={{
-            zIndex: 99999,
-            left: '64px',
-            top: `${popupTop}px`,
-          }}
-          onMouseEnter={handlePopupMouseEnter}
-          onMouseLeave={handlePopupMouseLeave}
-        >
-          <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-primary-50/50 via-transparent to-transparent dark:from-primary-900/10">
-            <div className="flex items-center gap-2.5">
-              <div className="p-1.5 bg-gradient-to-br from-primary-600 to-primary-700 rounded-lg shadow-md">
-                {category.icon && (() => { const Icon = category.icon; return <Icon className="h-4 w-4 text-white" /> })()}
-              </div>
-              <span className="text-sm font-bold text-gray-900 dark:text-white">{category.name}</span>
-            </div>
-          </div>
-          <div className="max-h-[calc(100vh-200px)] overflow-y-auto custom-scrollbar px-2 py-1">
-            {category.items.map((item: MenuItemBase, index: number) => (
-              <NavLink
-                key={item.name}
-                to={item.href ?? '#'}
-                style={{ animationDelay: `${index * 30}ms` }}
-                className={({ isActive }) =>
-                  clsx(
-                    'flex items-center gap-3 px-3 py-2.5 mx-1 rounded-xl text-sm transition-all duration-200 group animate-in slide-in-from-left-2 fade-in',
-                    isActive
-                      ? 'bg-gradient-to-r from-primary-50 to-primary-100 dark:from-primary-900/20 dark:to-primary-800/20 text-primary-600 dark:text-primary-400 font-semibold shadow-sm'
-                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:translate-x-1'
-                  )
-                }
-                onClick={() => isMobile && close()}
-              >
-                {item.icon && (() => { const Icon = item.icon; return <Icon className="h-4 w-4 flex-shrink-0 transition-transform duration-200 group-hover:scale-110" /> })()}
-                <span className="flex-1">{item.name}</span>
-                {item.badge !== undefined && (
-                  <span className="inline-flex items-center justify-center px-1.5 py-0.5 text-xs font-bold leading-none text-white bg-gradient-to-r from-red-600 to-red-700 rounded-full shadow-lg shadow-red-600/30 animate-pulse">
-                    {item.badge}
-                  </span>
-                )}
-              </NavLink>
-            ))}
-          </div>
-        </div>
-      )}
-    </div>
-  )
-}
-
-export function Sidebar() {
-  const { isOpen, isMobile, close, setSidebarWidth } = useSidebarStore()
-  const { config } = useConfig()
-  const [expandedCategory, setExpandedCategory] = useState<string | null>(null)
-  const [localWidth, setLocalWidth] = useState(256) // Default 256px (w-64)
-  const [isResizing, setIsResizing] = useState(false)
-  const { menu } = useMenu()
-
-  const minWidth = 200
-  const maxWidth = 400
-
-  const handleCategoryToggle = (categoryName: string) => {
-    setExpandedCategory(prev => prev === categoryName ? null : categoryName)
-  }
-
-  const handleMouseDown = (e: ReactMouseEvent) => {
-    if (!isOpen || isMobile) return
-    setIsResizing(true)
-    e.preventDefault()
-  }
-
-  const handleMouseMove = (e: MouseEvent) => {
-    if (!isResizing || !isOpen) return
-    const newWidth = Math.min(Math.max(e.clientX, minWidth), maxWidth)
-    setLocalWidth(newWidth)
-    setSidebarWidth(newWidth)
-  }
-
-  const handleMouseUp = () => {
-    setIsResizing(false)
-  }
-
-  // Add event listeners for resizing
-  useEffect(() => {
-    if (isResizing) {
-      document.addEventListener('mousemove', handleMouseMove)
-      document.addEventListener('mouseup', handleMouseUp)
-      return () => {
-        document.removeEventListener('mousemove', handleMouseMove)
-        document.removeEventListener('mouseup', handleMouseUp)
+  const handleCategoryMouseEnter = (categoryName: string) => {
+    if (!isOpen && !isMobile) {
+      if (hoverTimeoutRef.current) {
+        window.clearTimeout(hoverTimeoutRef.current)
       }
+      hoverTimeoutRef.current = window.setTimeout(() => {
+        setHoveredCategory(categoryName)
+      }, 200)
     }
-  }, [isResizing])
+  }
 
-  return (
-    <>
-      {isMobile && isOpen && (
-        <div
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 lg:hidden transition-opacity duration-300"
-          onClick={close}
-        />
-      )}
+  const handleCategoryMouseLeave = () => {
+    if (!isOpen && !isMobile) {
+      if (hoverTimeoutRef.current) {
+        window.clearTimeout(hoverTimeoutRef.current)
+      }
+      hoverTimeoutRef.current = window.setTimeout(() => {
+        setHoveredCategory(null)
+      }, 300)
+    }
+  }
 
-      <aside
-        style={{ 
-          width: isOpen && !isMobile ? `${localWidth}px` : undefined 
-        }}
-        className={clsx(
-          'fixed top-0 left-0 h-full bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 shadow-xl',
-          'transition-all duration-500 ease-out',
-          // When fully open (expanded) we want the sidebar above content but below modal overlays.
-          isOpen ? 'translate-x-0 z-30 w-64' : '-translate-x-full lg:translate-x-0 z-10',
-          // collapsed width on lg
-          !isOpen && 'lg:w-[63px]',
-          // mobile overlay when open
-          isMobile && 'w-64 z-50'
-        )}
+  const renderMenuItem = (item: MenuItemBase) => {
+    const Icon = item.icon
+
+    return (
+      <NavLink
+        key={item.name}
+        to={item.href || '#'}
+        onClick={() => isMobile && close()}
+        className={({ isActive }) =>
+          clsx(
+            'flex items-center rounded-lg transition-all duration-200 group relative',
+            isOpen ? 'gap-3 px-3 py-2.5' : 'justify-center py-2.5',
+            isActive
+              ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300'
+              : 'text-gray-700 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700/50 hover:text-gray-900 dark:hover:text-gray-200'
+          )
+        }
       >
-        <div className="flex flex-col h-full">
-          {/* Logo */}
-          <div className="flex items-center justify-center h-14 px-3 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-gray-50/50 dark:from-gray-800/50">
-            <div className={clsx(
-              'flex items-center gap-2.5 transition-all duration-300',
-              !isOpen && 'lg:justify-center'
-            )}>
-              <img 
-                src={config.logoUrl} 
-                alt={`${config.brandName} Logo`}
-                className="w-9 h-9 flex-shrink-0 transition-transform duration-300 hover:scale-110 object-contain"
-                onError={(e) => {
-                  e.currentTarget.src = '/Logo.png'
-                }}
-              />
-              {isOpen && (
-                <div className="flex flex-col animate-in fade-in slide-in-from-left-2 duration-300">
-                  <span className="text-sm font-bold text-gray-900 dark:text-white whitespace-nowrap leading-tight">
-                    {config.brandName}
-                  </span>
-                  <span className="text-[10px] text-gray-500 dark:text-gray-400 whitespace-nowrap leading-tight">
-                    Admin Panel
-                  </span>
-                </div>
-              )}
-            </div>
-            
-            {isMobile && (
-              <button 
-                onClick={close} 
-                className="ml-auto lg:hidden text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-all duration-200"
-              >
-                <XMarkIcon className="h-5 w-5" />
-              </button>
-            )}
+        {Icon && (
+          <Icon className={clsx('h-5 w-5 flex-shrink-0 transition-transform group-hover:scale-110')} />
+        )}
+        {isOpen && <span className="text-sm font-medium truncate">{item.name}</span>}
+        {isOpen && item.badge !== undefined && (
+          <span className="ml-auto bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full">
+            {item.badge}
+          </span>
+        )}
+        
+        {/* Tooltip when collapsed */}
+        {!isOpen && !isMobile && (
+          <div className="fixed left-20 px-2 py-1 bg-gray-900 dark:bg-gray-700 text-white text-xs rounded-md opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-50 pointer-events-none">
+            {item.name}
           </div>
+        )}
+      </NavLink>
+    )
+  }
 
-          {/* Navigation with scroll */}
-          <nav className="flex-1 overflow-y-auto p-2.5 space-y-1 custom-scrollbar">
-            {/** Use dynamic menu filtered by permissions **/}
-            {menu.map((item) => {
-              if (isCategory(item)) {
-                if (isOpen) {
-                  // Sidebar expandido: mostrar categoría con sub-items
-                  return (
-                    <CategoryItem 
-                      key={item.name} 
-                      category={item}
-                      isExpanded={expandedCategory === item.name}
-                      onToggle={() => handleCategoryToggle(item.name)}
-                    />
-                  )
-                } else {
-                  // Sidebar contraído: mostrar categoría como botón con popup
-                  return <CollapsedCategoryItem key={item.name} category={item} />
-                }
+  const renderCategory = (category: MenuCategory) => {
+    const Icon = category.icon
+    const isExpanded = openCategories.has(category.name)
+    const isHovered = hoveredCategory === category.name
+
+    return (
+      <div 
+        key={category.name}
+        className="relative"
+        data-category={category.name}
+        onMouseEnter={() => handleCategoryMouseEnter(category.name)}
+        onMouseLeave={handleCategoryMouseLeave}
+      >
+        <button
+          onClick={() => isOpen && toggleCategory(category.name)}
+          className={clsx(
+            'w-full flex items-center text-sm font-medium rounded-lg transition-all duration-200 group',
+            isOpen ? 'gap-3 px-3 py-2.5' : 'justify-center py-2.5',
+            'text-gray-700 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700/50'
+          )}
+        >
+          {Icon && <Icon className="h-5 w-5 flex-shrink-0" />}
+          {isOpen && <span className="flex-1 text-left truncate">{category.name}</span>}
+          {isOpen && (
+            <ChevronDownIcon
+              className={clsx('h-4 w-4 transition-transform duration-200', isExpanded && 'rotate-180')}
+            />
+          )}
+          {!isOpen && !isMobile && (
+            <ChevronRightIcon className="h-4 w-4 absolute right-1 opacity-0 group-hover:opacity-100 transition-opacity" 
+              style={{ marginLeft: '16px' }} 
+            />
+          )}
+        </button>
+
+        {/* Expanded submenu (when sidebar is open) */}
+        {isOpen && (
+          <div 
+            className={clsx(
+              'ml-8 overflow-hidden transition-all duration-300 ease-in-out',
+              isExpanded ? 'max-h-[500px] opacity-100 mt-1' : 'max-h-0 opacity-0'
+            )}
+          >
+            <div className="space-y-1">
+              {category.items.map((item) => renderMenuItem(item))}
+            </div>
+          </div>
+        )}
+
+        {/* Floating submenu (when sidebar is collapsed) */}
+        {!isOpen && !isMobile && isHovered && (
+          <div
+            className="fixed left-20 bg-white dark:bg-gray-800 rounded-lg shadow-2xl border border-gray-200 dark:border-gray-700 py-2 px-3 min-w-[200px] z-50"
+            style={{
+              top: `${document.querySelector(`[data-category="${category.name}"]`)?.getBoundingClientRect().top || 0}px`,
+            }}
+            onMouseEnter={() => {
+              if (hoverTimeoutRef.current) {
+                window.clearTimeout(hoverTimeoutRef.current)
               }
-              
-              // NavItem simple
-              if (isOpen) {
-                // Sidebar expandido: mostrar link normal
+              setHoveredCategory(category.name)
+            }}
+            onMouseLeave={handleCategoryMouseLeave}
+          >
+            <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2 px-2">
+              {category.name}
+            </div>
+            <div className="space-y-1">
+              {category.items.map((item) => {
+                const ItemIcon = item.icon
                 return (
-          <NavLink
-            key={item.name}
-            to={item.href ?? '#'}
+                  <NavLink
+                    key={item.name}
+                    to={item.href || '#'}
+                    onClick={() => isMobile && close()}
                     className={({ isActive }) =>
                       clsx(
-                        'flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200 group',
+                        'flex items-center gap-3 px-2 py-2 rounded-md transition-all duration-200 text-sm',
                         isActive
-                          ? 'bg-primary-50 dark:bg-primary-900/20 text-primary-600 dark:text-primary-400 shadow-sm'
-                          : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:translate-x-0.5'
+                          ? 'bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300'
+                          : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700/50'
                       )
                     }
-                    onClick={() => isMobile && close()}
                   >
-                    {(() => { const Icon = item.icon; return Icon ? <IconRenderer icon={Icon} className="h-5 w-5 flex-shrink-0 transition-transform duration-200 group-hover:scale-110" /> : null })()}
-                    <span className="transition-colors duration-200">{item.name}</span>
+                    {ItemIcon && <ItemIcon className="h-4 w-4 flex-shrink-0" />}
+                    <span className="truncate">{item.name}</span>
                     {item.badge !== undefined && (
-                      <span className="ml-auto inline-flex items-center justify-center px-1.5 py-0.5 text-xs font-bold leading-none text-white bg-red-600 rounded-full animate-pulse">
+                      <span className="ml-auto bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full">
                         {item.badge}
                       </span>
                     )}
                   </NavLink>
                 )
-              } else {
-                // Sidebar contraído: mostrar solo ícono
-                return (
-          <NavLink
-            key={item.name}
-            to={item.href ?? '#'}
-                    className={({ isActive }) =>
-                      clsx(
-                        'flex items-center justify-center p-2.5 rounded-xl text-sm font-medium transition-all duration-200 group',
-                        isActive
-                          ? 'bg-gradient-to-r from-primary-50 to-primary-100 dark:from-primary-900/20 dark:to-primary-800/20 text-primary-600 dark:text-primary-400 scale-105 shadow-md shadow-primary-200/50 dark:shadow-primary-900/30'
-                          : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
-                      )
-                    }
-                    onClick={() => isMobile && close()}
-                    title={item.name}
-                  >
-                    {(() => { const Icon = item.icon; return Icon ? <IconRenderer icon={Icon} className="h-5 w-5 flex-shrink-0 transition-transform duration-200 group-hover:scale-110" /> : null })()}
-                  </NavLink>
-                )
-              }
-            })}
-          </nav>
+              })}
+            </div>
+          </div>
+        )}
+      </div>
+    )
+  }
 
-          {/* Footer */}
-          {isOpen ? (
-            <div className="p-3 border-t border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900/20">
-              <div className="text-center text-xs text-gray-500 dark:text-gray-400 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                <p className="font-bold text-gray-700 dark:text-gray-300">Admin Panel {config.version}</p>
-                <p className="text-[10px] mt-0.5">{config.copyright}</p>
+  const renderEntry = (entry: MenuEntry, _index: number) => {
+    if ('items' in entry && Array.isArray(entry.items)) {
+      const category = entry as MenuCategory
+      return (
+        <div key={category.name} data-category={category.name}>
+          {renderCategory(category)}
+        </div>
+      )
+    }
+    return renderMenuItem(entry as MenuItemBase)
+  }
+
+  return (
+    <>
+      {/* Overlay para móvil */}
+      {isMobile && isOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-30 lg:hidden"
+          onClick={close}
+        />
+      )}
+
+      {/* Sidebar */}
+      <aside
+        className={clsx(
+          'fixed top-0 left-0 z-40 h-screen bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col overflow-x-hidden',
+          isMobile && !isOpen && '-translate-x-full'
+        )}
+        style={{ 
+          width: isOpen && !isMobile ? `${sidebarWidth}px` : (!isOpen && !isMobile ? '69px' : undefined),
+          maxWidth: !isOpen && !isMobile ? '69px' : undefined
+        }}
+      >
+        {/* Logo */}
+        <div className="flex items-center justify-center h-14 border-b border-gray-200 dark:border-gray-700 px-2 flex-shrink-0">
+          {!isOpen ? (
+            // Logo centrado cuando está colapsado
+            <img
+              src={config.logoUrl}
+              alt={config.brandName}
+              className="h-8 w-8 flex-shrink-0"
+            />
+          ) : (
+            // Logo con texto cuando está expandido
+            <div className="flex items-center gap-3 w-full justify-center">
+              <img
+                src={config.logoUrl}
+                alt={config.brandName}
+                className="h-8 w-8 flex-shrink-0"
+              />
+              <div className="flex flex-col -space-y-0.5">
+                <span className="text-sm font-bold text-gray-900 dark:text-white whitespace-nowrap leading-tight">
+                  {config.brandName}
+                </span>
+                <span className="text-[10px] text-gray-500 dark:text-gray-400 whitespace-nowrap">
+                  Admin Panel
+                </span>
               </div>
             </div>
-          ) : null}
+          )}
         </div>
 
-        {/* Resize handle */}
+        {/* Navigation */}
+        <nav className={clsx(
+          'flex-1 overflow-y-auto space-y-2 custom-scrollbar',
+          isOpen ? 'p-4' : 'px-2 py-4'
+        )}>
+          {menu.map((entry, index) => renderEntry(entry, index))}
+        </nav>
+
+        {/* Footer */}
+        {isOpen && (
+          <div className="border-t border-gray-200 dark:border-gray-700 p-4 flex-shrink-0">
+            <div className="text-center space-y-1">
+              <p className="text-xs font-semibold text-gray-700 dark:text-gray-300">
+                Admin Panel v1.0.0
+              </p>
+              <p className="text-[10px] text-gray-500 dark:text-gray-400 flex items-center justify-center gap-1">
+                <span>©</span>
+                <span>2025 FaruTech</span>
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Resizer */}
         {isOpen && !isMobile && (
           <div
-            onMouseDown={handleMouseDown}
-            className={clsx(
-              'absolute top-0 right-0 w-1 h-full cursor-col-resize hover:bg-primary-500 transition-colors duration-200 group',
-              isResizing && 'bg-primary-500'
-            )}
-          >
-            <div className="absolute top-1/2 -translate-y-1/2 right-0 w-1 h-16 bg-primary-500 rounded-l-full opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
-          </div>
+            onMouseDown={startResizing}
+            className="absolute top-0 right-0 h-full w-1.5 cursor-col-resize bg-gray-200/50 dark:bg-gray-700/50 hover:bg-primary-200 dark:hover:bg-primary-800 transition-colors duration-200"
+          />
         )}
       </aside>
     </>

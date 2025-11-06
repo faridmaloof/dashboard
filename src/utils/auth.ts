@@ -27,24 +27,31 @@ export function getRefreshToken(): string | null {
 export function setTokens(token?: string | null, refreshToken?: string | null) {
   try {
     if (token) {
+      // Store in Zustand (memory)
       useAuthStore.getState().setAccessToken(token)
+      // ALSO persist to localStorage for immediate availability (Sanctum tokens are safe to persist)
+      localStorage.setItem(AUTH_CONFIG.tokenKey, token)
+      console.log('💾 Access token guardado en memoria y localStorage')
     }
     // Only persist refresh token in localStorage when not using HttpOnly cookie mode.
     if (refreshToken && !AUTH_CONFIG.useHttpOnlyCookie) {
       localStorage.setItem(AUTH_CONFIG.refreshTokenKey, refreshToken)
+      console.log('💾 Refresh token guardado en localStorage')
     }
-  } catch {
-    // ignore
+  } catch (error) {
+    console.error('❌ Error guardando tokens:', error)
   }
 }
 
 export function clearTokens() {
   try {
     useAuthStore.getState().clearAccessToken()
+    localStorage.removeItem(AUTH_CONFIG.tokenKey)
     localStorage.removeItem(AUTH_CONFIG.refreshTokenKey)
     localStorage.removeItem(AUTH_CONFIG.userKey)
-  } catch {
-    // ignore
+    console.log('🗑️ Tokens limpiados de memoria y localStorage')
+  } catch (error) {
+    console.error('❌ Error limpiando tokens:', error)
   }
 }
 

@@ -1,20 +1,12 @@
 import { useMemo } from 'react'
 import { MENU_CONFIG, type MenuEntry, type MenuCategory, type MenuItemBase } from '@/config/menu.config'
 import { useAuth } from './useAuth'
-import type { User } from '@/types'
 import { useQuery } from '@tanstack/react-query'
 import { apiService } from '@/services/api.service'
 import { ENDPOINTS } from '@/config/api.config'
 
-function canView(user: User | null | undefined, permission?: string) {
-  if (!permission) return true
-  if (!user) return false
-  if (!user.permissions || user.permissions.length === 0) return false
-  return user.permissions.includes(permission)
-}
-
 export function useMenu() {
-  const { user } = useAuth()
+  const { user, hasPermission } = useAuth()
 
   // Try to fetch server-provided menu (override) using react-query
   const { data: serverMenu } = useQuery<MenuEntry[]>({
@@ -38,20 +30,35 @@ export function useMenu() {
 
     for (const entry of source) {
       if ('items' in entry && Array.isArray((entry as MenuCategory).items)) {
-        const items = (entry as MenuCategory).items.filter((it) => canView(user, (it as any).permission))
+        // Es una categoría con items
+        const category = entry as MenuCategory
+        const items = category.items.filter((item) => {
+          const permission = (item as any).permission
+          // Si no tiene permiso requerido, mostrar siempre
+          if (!permission) return true
+          // Si tiene permiso requerido, verificar si el usuario lo tiene
+          return hasPermission(permission)
+        })
+        
+        // Solo agregar la categoría si tiene items visibles
         if (items.length > 0) {
-          result.push({ ...(entry as MenuCategory), items })
+          result.push({ ...category, items })
         }
       } else {
+        // Es un item individual
         const item = entry as MenuItemBase
-        if (canView(user, (item as any).permission)) {
+        const permission = (item as any).permission
+        // Si no tiene permiso requerido, mostrar siempre
+        if (!permission) {
+          result.push(item)
+        } else if (hasPermission(permission)) {
           result.push(item)
         }
       }
     }
 
     return result
-  }, [serverMenu, user])
+  }, [serverMenu, user, hasPermission])
 
   return { menu, user }
 }

@@ -7,7 +7,6 @@ import type { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios'
 import { API_CONFIG, AUTH_CONFIG, ENDPOINTS } from '../config/api.config'
 import type { ApiError, ApiResponse } from '@/types'
 import { getAccessToken, getRefreshToken, setTokens, clearTokens, isTokenExpired } from '@/utils/auth'
-import { attachCsrfHeader } from '@/utils/csrf'
 
 class ApiService {
   private api: AxiosInstance
@@ -16,8 +15,12 @@ class ApiService {
     this.api = axios.create({
       baseURL: API_CONFIG.baseURL,
       timeout: API_CONFIG.timeout,
-      headers: API_CONFIG.headers,
-      withCredentials: !!AUTH_CONFIG.useHttpOnlyCookie,
+      headers: {
+        ...API_CONFIG.headers,
+        'Accept': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest', // Importante para Laravel
+      },
+      withCredentials: false, // Para tokens de API, usar false
     })
 
     this.setupInterceptors()
@@ -28,21 +31,21 @@ class ApiService {
     this.api.interceptors.request.use(
       (config) => {
         const token = getAccessToken()
+        console.log('🔑 Request interceptor - Token:', token ? `${token.substring(0, 20)}...` : 'NO TOKEN')
+        console.log('📍 Request URL:', config.url)
+        console.log('📍 Request headers antes:', config.headers)
+        
         // Evitar enviar token expirado si podemos detectarlo
         if (token && !isTokenExpired(token)) {
           config.headers.Authorization = `Bearer ${token}`
+          console.log('✅ Authorization header agregado:', config.url)
+        } else if (!token) {
+          console.log('⚠️ No hay token disponible para:', config.url)
+        } else if (isTokenExpired(token)) {
+          console.log('⚠️ Token expirado, no se agrega a:', config.url)
         }
-
-        // Adjuntar header CSRF para peticiones mutantes si está disponible
-        const method = (config.method || 'get').toLowerCase()
-        if (['post', 'put', 'patch', 'delete'].includes(method)) {
-          // Merge CSRF header into existing headers. Casts are required because
-          // Axios typings for headers are strict (AxiosHeaders) while our helper
-          // returns a plain object.
-          const csrf = attachCsrfHeader((config.headers as any) || {})
-          Object.assign(config.headers || {}, csrf)
-        }
-
+        
+        console.log('📍 Request headers después:', config.headers)
         return config
       },
       (error) => Promise.reject(error)
@@ -76,6 +79,18 @@ class ApiService {
           // marcar para no reintentar infinitamente
           originalRequest._retry = true
 
+          // IMPORTANTE: Si no hay refresh token, no intentar refresh
+          const refreshToken = getRefreshToken()
+          if (!refreshToken && !AUTH_CONFIG.useHttpOnlyCookie) {
+            console.log('⚠️ 401 sin refresh token - redirigiendo a login')
+            clearTokens()
+            // Solo redirigir si no estamos ya en login
+            if (!window.location.pathname.includes('/login')) {
+              window.location.href = '/login'
+            }
+            return Promise.reject(error)
+          }
+
           if (isRefreshing) {
             // Si ya hay un refresh en curso, encolar la petición
             return new Promise((resolve, reject) => {
@@ -93,7 +108,7 @@ class ApiService {
           isRefreshing = true
 
           try {
-            const refreshToken = getRefreshToken()
+            console.log('🔄 Intentando refrescar token...')
 
             let refreshResponse
 
@@ -101,18 +116,31 @@ class ApiService {
               // Si el backend usa cookie, sólo llamar al endpoint y confiar en cookie
               refreshResponse = await axios.post(`${API_CONFIG.baseURL}${ENDPOINTS.auth.refresh}`, null, {
                 withCredentials: true,
+                headers: {
+                  'Accept': 'application/json',
+                  'Content-Type': 'application/json',
+                }
               })
             } else {
-              // Enviar refresh token en body
+              // Enviar refresh token en body con el campo correcto para Ordinex
               refreshResponse = await axios.post(`${API_CONFIG.baseURL}${ENDPOINTS.auth.refresh}`, {
-                refreshToken,
+                refresh_token: refreshToken, // Ordinex espera 'refresh_token' no 'refreshToken'
+              }, {
+                headers: {
+                  'Accept': 'application/json',
+                  'Content-Type': 'application/json',
+                  'X-Requested-With': 'XMLHttpRequest',
+                }
               })
             }
 
-            const newToken = refreshResponse?.data?.token
-            const newRefresh = refreshResponse?.data?.refreshToken
+            // Ordinex devuelve la respuesta envuelta en { success, data: { access_token, refresh_token } }
+            const responseData = refreshResponse?.data?.data || refreshResponse?.data
+            const newToken = responseData?.access_token || responseData?.token
+            const newRefresh = responseData?.refresh_token || responseData?.refreshToken
 
             if (newToken) {
+              console.log('✅ Token refrescado exitosamente')
               setTokens(newToken, newRefresh)
               processQueue(null, newToken)
 
@@ -124,14 +152,20 @@ class ApiService {
             }
 
             // Si no vino token, forzar logout
+            console.log('❌ No se recibió token en refresh')
             clearTokens()
             processQueue(new Error('No hay token en refresh'))
-            window.location.href = '/login'
+            if (!window.location.pathname.includes('/login')) {
+              window.location.href = '/login'
+            }
             return Promise.reject(error)
           } catch (refreshError) {
+            console.log('❌ Error al refrescar token:', refreshError)
             clearTokens()
             processQueue(refreshError, null)
-            window.location.href = '/login'
+            if (!window.location.pathname.includes('/login')) {
+              window.location.href = '/login'
+            }
             return Promise.reject(refreshError)
           } finally {
             isRefreshing = false
@@ -163,8 +197,6 @@ class ApiService {
       message: error.message || 'Error desconocido',
     }
   }
-
-  // NOTE: token storage/clearing is handled by helpers in `src/utils/auth.ts`
 
   // Métodos HTTP
   async get<T = any>(url: string, config?: AxiosRequestConfig): Promise<ApiResponse<T>> {

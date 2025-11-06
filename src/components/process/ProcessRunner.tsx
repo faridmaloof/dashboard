@@ -3,7 +3,7 @@
  */
 
 import { useState } from 'react'
-import { PlayIcon, StopIcon } from '@heroicons/react/24/solid'
+import { PlayIcon } from '@heroicons/react/24/solid'
 import { Button } from '../ui/Button'
 import { Card, CardHeader } from '../ui/Card'
 import { Input } from '../ui/Input'
@@ -18,25 +18,19 @@ interface ProcessRunnerProps {
   onComplete?: (result: any) => void
 }
 
-export function ProcessRunner({ process, onComplete }: ProcessRunnerProps) {
-  const { useExecuteAndMonitor } = useProcess()
-  const { execute, status, isExecuting, isMonitoring, error, reset } = useExecuteAndMonitor()
+export function ProcessRunner({ process }: ProcessRunnerProps) {
+  const { executeProcess, currentExecution, isExecuting } = useProcess()
   
   const [params, setParams] = useState<Record<string, any>>(process.params || {})
 
   const handleExecute = async () => {
     try {
-      const result = await execute({
-        endpoint: process.endpoint,
-        method: process.method,
-        data: params,
+      executeProcess({
+        processId: String(process.id),
+        parameters: params,
       })
 
       notify.success('Proceso iniciado', 'El proceso se está ejecutando')
-      
-      if (!isMonitoring) {
-        onComplete?.(result)
-      }
     } catch (err: any) {
       notify.error('Error', err.message || 'No se pudo ejecutar el proceso')
     }
@@ -50,9 +44,9 @@ export function ProcessRunner({ process, onComplete }: ProcessRunnerProps) {
     switch (status) {
       case 'running':
         return 'text-blue-600 dark:text-blue-400'
-      case 'success':
+      case 'completed':
         return 'text-green-600 dark:text-green-400'
-      case 'error':
+      case 'failed':
         return 'text-red-600 dark:text-red-400'
       default:
         return 'text-gray-600 dark:text-gray-400'
@@ -68,34 +62,23 @@ export function ProcessRunner({ process, onComplete }: ProcessRunnerProps) {
           subtitle={process.description}
           action={
             <div className="flex items-center gap-2">
-              {status && (
-                <span className={clsx('text-sm font-medium', getStatusColor(status.status))}>
-                  {status.status === 'running' && 'Ejecutando...'}
-                  {status.status === 'success' && 'Completado'}
-                  {status.status === 'error' && 'Error'}
+              {currentExecution && (
+                <span className={clsx('text-sm font-medium', getStatusColor(currentExecution.status))}>
+                  {currentExecution.status === 'running' && 'Ejecutando...'}
+                  {currentExecution.status === 'completed' && 'Completado'}
+                  {currentExecution.status === 'failed' && 'Error'}
                 </span>
               )}
               
-              {isMonitoring ? (
-                <Button
-                  size="sm"
-                  variant="danger"
-                  icon={<StopIcon className="h-4 w-4" />}
-                  onClick={reset}
-                >
-                  Detener
-                </Button>
-              ) : (
-                <Button
-                  size="sm"
-                  icon={<PlayIcon className="h-4 w-4" />}
-                  onClick={handleExecute}
-                  loading={isExecuting}
-                  disabled={isExecuting}
-                >
-                  Ejecutar
-                </Button>
-              )}
+              <Button
+                size="sm"
+                icon={<PlayIcon className="h-4 w-4" />}
+                onClick={handleExecute}
+                loading={isExecuting}
+                disabled={isExecuting}
+              >
+                Ejecutar
+              </Button>
             </div>
           }
         />
@@ -112,19 +95,19 @@ export function ProcessRunner({ process, onComplete }: ProcessRunnerProps) {
                 label={key}
                 value={params[key] || defaultValue}
                 onChange={(e) => handleParamChange(key, e.target.value)}
-                disabled={isExecuting || isMonitoring}
+                disabled={isExecuting}
               />
             ))}
           </div>
         )}
 
         {/* Progress indicator */}
-        {isMonitoring && (
+        {isExecuting && currentExecution?.status === 'running' && (
           <div className="space-y-2">
             <div className="flex items-center justify-between text-sm">
               <span className="text-gray-600 dark:text-gray-400">Progreso</span>
               <span className="text-gray-900 dark:text-white font-medium">
-                {status?.status === 'running' ? 'En proceso...' : 'Procesando...'}
+                En proceso...
               </span>
             </div>
             <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
@@ -134,25 +117,25 @@ export function ProcessRunner({ process, onComplete }: ProcessRunnerProps) {
         )}
 
         {/* Result */}
-        {status?.result && status.status === 'success' && (
+        {currentExecution?.result && currentExecution.status === 'completed' && (
           <div className="p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
             <h4 className="text-sm font-medium text-green-900 dark:text-green-100 mb-2">
               Resultado
             </h4>
             <pre className="text-xs text-green-800 dark:text-green-200 overflow-x-auto">
-              {JSON.stringify(status.result, null, 2)}
+              {JSON.stringify(currentExecution.result, null, 2)}
             </pre>
           </div>
         )}
 
         {/* Error */}
-        {(error || status?.error) && (
+        {currentExecution?.error && (
           <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
             <h4 className="text-sm font-medium text-red-900 dark:text-red-100 mb-2">
               Error
             </h4>
             <p className="text-sm text-red-800 dark:text-red-200">
-              {error?.message || status?.error}
+              {currentExecution.error}
             </p>
           </div>
         )}

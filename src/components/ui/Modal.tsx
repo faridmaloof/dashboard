@@ -1,21 +1,30 @@
 /**
- * Componente Modal reutilizable con Headless UI
+ * Componente Modal
+ * Modal reutilizable con overlay y animaciones usando Headless UI
  */
 
 import { Fragment } from 'react'
-import type { ReactNode } from 'react'
 import { Dialog, Transition } from '@headlessui/react'
 import { XMarkIcon } from '@heroicons/react/24/outline'
 import clsx from 'clsx'
 
-interface ModalProps {
+export interface ModalProps {
   isOpen: boolean
   onClose: () => void
   title?: string
-  children: ReactNode
-  footer?: ReactNode
-  size?: 'sm' | 'md' | 'lg' | 'xl' | 'full'
-  closeButton?: boolean
+  children: React.ReactNode
+  size?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | 'full'
+  showCloseButton?: boolean
+  footer?: React.ReactNode
+}
+
+const sizeClasses = {
+  sm: 'max-w-sm',
+  md: 'max-w-md',
+  lg: 'max-w-lg',
+  xl: 'max-w-xl',
+  '2xl': 'max-w-2xl',
+  full: 'max-w-full mx-4',
 }
 
 export function Modal({
@@ -23,18 +32,10 @@ export function Modal({
   onClose,
   title,
   children,
-  footer,
   size = 'md',
-  closeButton = true,
+  showCloseButton = true,
+  footer,
 }: ModalProps) {
-  const sizes = {
-    sm: 'max-w-md',
-    md: 'max-w-lg',
-    lg: 'max-w-2xl',
-    xl: 'max-w-4xl',
-    full: 'max-w-7xl',
-  }
-
   return (
     <Transition appear show={isOpen} as={Fragment}>
       <Dialog as="div" className="relative z-50" onClose={onClose}>
@@ -47,7 +48,7 @@ export function Modal({
           leaveFrom="opacity-100"
           leaveTo="opacity-0"
         >
-          <div className="fixed inset-0 bg-black bg-opacity-50" />
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" />
         </Transition.Child>
 
         <div className="fixed inset-0 overflow-y-auto">
@@ -63,11 +64,12 @@ export function Modal({
             >
               <Dialog.Panel
                 className={clsx(
-                  'w-full transform overflow-hidden rounded-lg bg-white dark:bg-gray-800 text-left align-middle shadow-xl transition-all',
-                  sizes[size]
+                  'w-full transform overflow-hidden rounded-2xl bg-white dark:bg-gray-800 text-left align-middle shadow-xl transition-all',
+                  sizeClasses[size]
                 )}
               >
-                {(title || closeButton) && (
+                {/* Header */}
+                {(title || showCloseButton) && (
                   <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 dark:border-gray-700">
                     {title && (
                       <Dialog.Title
@@ -77,7 +79,7 @@ export function Modal({
                         {title}
                       </Dialog.Title>
                     )}
-                    {closeButton && (
+                    {showCloseButton && (
                       <button
                         type="button"
                         className="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300 transition-colors"
@@ -89,10 +91,14 @@ export function Modal({
                   </div>
                 )}
 
-                <div className="px-6 py-4">{children}</div>
+                {/* Content */}
+                <div className="px-6 py-4">
+                  {children}
+                </div>
 
+                {/* Footer */}
                 {footer && (
-                  <div className="px-6 py-4 bg-gray-50 dark:bg-gray-800/50 border-t border-gray-200 dark:border-gray-700">
+                  <div className="px-6 py-4 border-t border-gray-200 dark:border-gray-700">
                     {footer}
                   </div>
                 )}

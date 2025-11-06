@@ -2,19 +2,84 @@
  * Tipos globales de la aplicación
  */
 
-// Usuario
+// ============================================
+// Respuestas de API
+// ============================================
+
+// Interfaz para la respuesta de paginación directa de Laravel
+export interface LaravelPaginatedResponse<T> {
+  current_page: number
+  data: T[]
+  first_page_url: string
+  from: number
+  last_page: number
+  last_page_url: string
+  links?: Array<{
+    url: string | null
+    label: string
+    page: number | null
+    active: boolean
+  }>
+  next_page_url: string | null
+  path: string
+  per_page: number
+  prev_page_url: string | null
+  to: number
+  total: number
+}
+
+// ============================================
+// Modelos Ordinex
+// ============================================
+
+// Access (Permisos/Accesos) - Ordinex
+export interface Access {
+  id?: string | number
+  module: string // 3 caracteres (ej: "usr", "rls")
+  action: string // 3 caracteres (ej: "lst", "crt")
+  code: string // Combinación module.action (ej: "usr.lst")
+  name: string // Nombre descriptivo
+  description?: string
+  active?: boolean
+  createdAt?: string
+  updatedAt?: string
+}
+
+// Role - Ordinex
+export interface Role {
+  id?: string | number
+  code: string // 3 caracteres (ej: "adm", "jmo")
+  name: string // Nombre descriptivo
+  description?: string
+  accesses?: Access[] // Array de accesos/permisos
+  active?: boolean
+  createdAt?: string
+  updatedAt?: string
+}
+
+// Usuario - Compatible con Ordinex
 export interface User {
-  id: string | number
+  id: string | number // ID es requerido
   email: string
   name: string
   avatar?: string
-  role: 'admin' | 'user' | 'moderator'
-  // Permisos asignados al usuario (códigos/strings)
+  // Roles del usuario (Ordinex)
+  roles?: Role[] // Array de roles con sus accesos
+  // Accesos directos del usuario (Ordinex - para permisos granulares)
+  accesses?: Access[] // Array de accesos/permisos directos
+  // Permisos procesados (códigos/strings) - calculados del frontend
   permissions?: string[]
-  // Atajos o accesos específicos (opcional)
-  accesses?: string[]
-  createdAt: string
+  // Estado y verificación
+  active?: boolean
+  is_active?: boolean
+  account_confirmed?: boolean
+  emailVerifiedAt?: string | null
+  email_verified_at?: string | null
+  // Timestamps
+  createdAt?: string
+  created_at?: string
   updatedAt?: string
+  updated_at?: string
 }
 
 // Auth
@@ -152,4 +217,72 @@ export interface Notification {
   title: string
   message?: string
   duration?: number
+}
+
+// Cash Register - Ordinex
+export interface CashRegister {
+  id: string | number
+  code: string
+  name: string
+  description?: string
+  location?: string
+  opening_balance: number
+  current_balance?: number
+  is_active: boolean
+  users?: User[] // Array de usuarios asociados
+  created_at?: string
+  updated_at?: string
+}
+
+// Customer - Ordinex
+export interface Customer {
+  id: string | number
+  code: string
+  name: string
+  document_type?: string
+  document_number?: string
+  email?: string
+  phone?: string
+  address?: string
+  city?: string
+  country?: string
+  is_active: boolean
+  created_at?: string
+  updated_at?: string
+}
+
+// Item (Product/Article) - Ordinex
+export interface Item {
+  id: string | number
+  code: string
+  description: string
+  type?: string // 'product', 'service', etc.
+  unit?: string
+  price: number
+  cost?: number
+  stock?: number
+  barcode?: string
+  brand?: string
+  model?: string
+  taxable: boolean
+  tax_rate?: number
+  is_active?: boolean
+  created_at?: string
+  updated_at?: string
+}
+
+// Document Type - Ordinex
+export interface DocumentType {
+  id: string | number
+  code: string
+  name: string
+  description?: string
+  category?: string
+  prefix?: string
+  current_number?: number
+  consecutive_length?: number
+  requires_approval: boolean
+  is_active?: boolean
+  created_at?: string
+  updated_at?: string
 }

@@ -2,94 +2,128 @@
  * Página de gestión de usuarios con CRUD completo
  */
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import type { ColumnDef } from '@tanstack/react-table'
-import { PlusIcon, MagnifyingGlassIcon, FunnelIcon, TrashIcon } from '@heroicons/react/24/outline'
+import { MagnifyingGlassIcon, FunnelIcon, TrashIcon } from '@heroicons/react/24/outline'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { CrudTable } from '@/components/crud/CrudTable'
 import { CrudActions } from '@/components/crud/CrudActions'
 import { CrudPagination } from '@/components/crud/CrudPagination'
-import { Modal } from '@/components/ui/Modal'
-import type { User } from '@/types'
-// import { useCrud } from '@/hooks/useCrud'
+import type { User, LaravelPaginatedResponse } from '@/types'
 import { notify } from '@/store/notificationStore'
-
-// Datos de ejemplo (reemplazar con useCrud hook cuando conectes al backend)
-const mockUsers: User[] = [
-  { id: 1, name: 'Juan Pérez', email: 'juan@example.com', role: 'admin', avatar: '', createdAt: '2024-01-15' },
-  { id: 2, name: 'María García', email: 'maria@example.com', role: 'user', avatar: '', createdAt: '2024-01-16' },
-  { id: 3, name: 'Carlos López', email: 'carlos@example.com', role: 'moderator', avatar: '', createdAt: '2024-01-17' },
-  { id: 4, name: 'Ana Martínez', email: 'ana@example.com', role: 'user', avatar: '', createdAt: '2024-01-18' },
-  { id: 5, name: 'Pedro Sánchez', email: 'pedro@example.com', role: 'user', avatar: '', createdAt: '2024-01-19' },
-]
+import { ENDPOINTS } from '@/config/api.config'
+import { apiService } from '@/services/api.service'
 
 export function UsersPage() {
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(1)
   const [perPage, setPerPage] = useState(10)
   const [selectedRows, setSelectedRows] = useState<Set<string | number>>(new Set())
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
-  const [currentUser, setCurrentUser] = useState<User | null>(null)
 
-  // Cuando conectes al backend, descomenta esto:
-  // const userCrud = useCrud<User>({ endpoint: '/users', queryKey: 'users' })
-  // const { data, isLoading } = userCrud.useList({ page, perPage, search })
-  // const createMutation = userCrud.useCreate()
-  // const updateMutation = userCrud.useUpdate()
-  // const deleteMutation = userCrud.useDelete()
+  // Fetch users from API
+  const { data: response, isLoading } = useQuery({
+    queryKey: ['users', page, perPage, search],
+    queryFn: async () => {
+      const res = await apiService.get<LaravelPaginatedResponse<User>>(
+        `${ENDPOINTS.users.list}?page=${page}&per_page=${perPage}${search ? `&search=${search}` : ''}`
+      )
+      return res.data
+    },
+  })
 
-  // Mock data para demo
-  const data = { data: mockUsers, total: 5, page: 1, perPage: 10, totalPages: 1 }
-  const isLoading = false
+  const users = response?.data || []
+  const total = response?.total || 0
+  const totalPages = response?.last_page || 1
 
-  const columns: ColumnDef<User>[] = [
-    {
-      accessorKey: 'name',
-      header: 'Nombre',
-      enableSorting: true,
-    },
-    {
-      accessorKey: 'email',
-      header: 'Email',
-      enableSorting: true,
-    },
-    {
-      accessorKey: 'role',
-      header: 'Rol',
-      cell: ({ row }) => (
-        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-100 dark:bg-primary-900/30 text-primary-800 dark:text-primary-200">
-          {row.original.role}
-        </span>
-      ),
-    },
-    {
-      accessorKey: 'createdAt',
-      header: 'Fecha de Creación',
-      enableSorting: true,
-    },
-    {
-      id: 'actions',
-      header: 'Acciones',
-      cell: ({ row }) => (
-        <CrudActions
-          onView={() => handleView(row.original)}
-          onEdit={() => handleEdit(row.original)}
-          onDelete={() => handleDelete(row.original.id)}
-        />
-      ),
-    },
-  ]
+  const columns: ColumnDef<User>[] = useMemo(
+    () => [
+      {
+        accessorKey: 'name',
+        header: 'Nombre',
+        enableSorting: true,
+      },
+      {
+        accessorKey: 'email',
+        header: 'Email',
+        enableSorting: true,
+      },
+      {
+        accessorKey: 'roles',
+        header: 'Roles',
+        cell: ({ row }) => {
+          const rolesCount = row.original.roles?.length || 0
+          if (rolesCount === 0) {
+            return <span className="text-sm text-gray-500">Sin roles</span>
+          }
+          return (
+            <div className="flex flex-wrap gap-1">
+              {row.original.roles?.slice(0, 2).map((role) => (
+                <span
+                  key={role.code}
+                  className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-100 dark:bg-primary-900/30 text-primary-800 dark:text-primary-200"
+                >
+                  {role.name}
+                </span>
+              ))}
+              {rolesCount > 2 && (
+                <span className="text-xs text-gray-500">+{rolesCount - 2}</span>
+              )}
+            </div>
+          )
+        },
+      },
+      {
+        id: 'accesses',
+        header: 'Accesos',
+        cell: ({ row }) => {
+          const accessCount = row.original.accesses?.length || 0
+          return (
+            <span className="text-sm text-gray-600 dark:text-gray-400">
+              {accessCount} {accessCount === 1 ? 'acceso' : 'accesos'}
+            </span>
+          )
+        },
+      },
+      {
+        accessorKey: 'is_active',
+        header: 'Estado',
+        enableSorting: true,
+        cell: ({ row }) => (
+          <span
+            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+              row.original.is_active
+                ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
+                : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
+            }`}
+          >
+            {row.original.is_active ? 'Activo' : 'Inactivo'}
+          </span>
+        ),
+      },
+      {
+        id: 'actions',
+        header: 'Acciones',
+        cell: ({ row }) => (
+          <CrudActions
+            onView={() => handleView(row.original)}
+            onEdit={() => handleEdit(row.original)}
+            onDelete={() => row.original.id && handleDelete(row.original.id)}
+          />
+        ),
+      },
+    ],
+    []
+  )
 
   const handleView = (user: User) => {
     notify.info('Ver usuario', `Viendo detalles de ${user.name}`)
   }
 
   const handleEdit = (user: User) => {
-    setCurrentUser(user)
-    setIsEditModalOpen(true)
+    notify.info('Editar usuario', `Editando ${user.name}`)
   }
 
   const handleDelete = (_id: string | number) => {
@@ -121,9 +155,6 @@ export function UsersPage() {
             Gestiona los usuarios del sistema
           </p>
         </div>
-        <Button icon={<PlusIcon className="h-5 w-5" />} onClick={() => setIsCreateModalOpen(true)}>
-          Crear Usuario
-        </Button>
       </div>
 
       {/* Filters */}
@@ -155,7 +186,7 @@ export function UsersPage() {
       {/* Table */}
       <Card padding="none">
         <CrudTable
-          data={data?.data || []}
+          data={users}
           columns={columns}
           isLoading={isLoading}
           selectable
@@ -164,64 +195,13 @@ export function UsersPage() {
         />
         <CrudPagination
           currentPage={page}
-          totalPages={data?.totalPages || 1}
+          totalPages={totalPages}
           perPage={perPage}
-          total={data?.total || 0}
+          total={total}
           onPageChange={setPage}
           onPerPageChange={setPerPage}
         />
       </Card>
-
-      {/* Create Modal */}
-      <Modal
-        isOpen={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
-        title="Crear Usuario"
-        size="md"
-      >
-        <div className="space-y-4">
-          <Input label="Nombre" placeholder="Juan Pérez" />
-          <Input label="Email" type="email" placeholder="juan@example.com" />
-          <Input label="Contraseña" type="password" placeholder="••••••••" />
-        </div>
-        <div className="flex justify-end gap-2 mt-6">
-          <Button variant="secondary" onClick={() => setIsCreateModalOpen(false)}>
-            Cancelar
-          </Button>
-          <Button onClick={() => {
-            notify.success('Usuario creado', 'El usuario ha sido creado correctamente')
-            setIsCreateModalOpen(false)
-          }}>
-            Crear
-          </Button>
-        </div>
-      </Modal>
-
-      {/* Edit Modal */}
-      <Modal
-        isOpen={isEditModalOpen}
-        onClose={() => setIsEditModalOpen(false)}
-        title="Editar Usuario"
-        size="md"
-      >
-        {currentUser && (
-          <div className="space-y-4">
-            <Input label="Nombre" defaultValue={currentUser.name} />
-            <Input label="Email" type="email" defaultValue={currentUser.email} />
-          </div>
-        )}
-        <div className="flex justify-end gap-2 mt-6">
-          <Button variant="secondary" onClick={() => setIsEditModalOpen(false)}>
-            Cancelar
-          </Button>
-          <Button onClick={() => {
-            notify.success('Usuario actualizado', 'Los cambios han sido guardados')
-            setIsEditModalOpen(false)
-          }}>
-            Guardar
-          </Button>
-        </div>
-      </Modal>
     </div>
   )
 }

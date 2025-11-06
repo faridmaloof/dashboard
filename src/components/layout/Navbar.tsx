@@ -71,6 +71,22 @@ const breadcrumbMap: Record<string, BreadcrumbItem[]> = {
     { label: 'Configuración', href: '/settings/system' },
     { label: 'Sistema', href: '/settings/system' }
   ],
+  '/config/cash-registers': [
+    { label: 'Parámetros', href: '/config/cash-registers' },
+    { label: 'Cajas Registradoras', href: '/config/cash-registers' }
+  ],
+  '/config/customers': [
+    { label: 'Parámetros', href: '/config/customers' },
+    { label: 'Clientes', href: '/config/customers' }
+  ],
+  '/config/items': [
+    { label: 'Parámetros', href: '/config/items' },
+    { label: 'Artículos', href: '/config/items' }
+  ],
+  '/config/document-types': [
+    { label: 'Parámetros', href: '/config/document-types' },
+    { label: 'Tipos de Documento', href: '/config/document-types' }
+  ],
 }
 
 // Mock notifications
@@ -104,11 +120,16 @@ const notifications = [
 export function Navbar() {
   const { toggle } = useSidebarStore()
   const { theme, toggleTheme } = useThemeStore()
+  const { user } = useAuth()
   const location = useLocation()
   const [isSearchOpen, setIsSearchOpen] = useState(false)
   
   const breadcrumbs = breadcrumbMap[location.pathname] || [{ label: 'Dashboard', href: '/dashboard' }]
   const unreadCount = notifications.filter(n => !n.read).length
+
+  // Get user display name and email
+  const displayName = user?.name || 'Usuario'
+  const displayEmail = user?.email || 'usuario@example.com'
 
   // Atajo de teclado para abrir búsqueda
   useEffect(() => {
@@ -295,7 +316,7 @@ export function Navbar() {
             <Menu.Button className="flex items-center gap-2 p-2 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-all duration-200 rounded-xl hover:bg-gray-100/80 dark:hover:bg-gray-700/80 group">
               <UserCircleIcon className="h-6 w-6 group-hover:scale-110 transition-transform duration-200" />
               <span className="hidden md:block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Usuario Demo
+                {displayName}
               </span>
             </Menu.Button>
 
@@ -314,10 +335,10 @@ export function Navbar() {
                       <div className="px-3 py-3 border-b border-gray-200 dark:border-gray-700">
                         <p className="text-sm font-semibold text-gray-900 dark:text-white flex items-center gap-2">
                           <UserCircleIcon className="h-5 w-5 text-primary-600 dark:text-primary-400" />
-                          Usuario Demo
+                          {displayName}
                         </p>
                         <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                          usuario@demo.com
+                          {displayEmail}
                         </p>
                       </div>
 

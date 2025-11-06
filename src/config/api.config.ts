@@ -5,7 +5,7 @@
 
 export const API_CONFIG = {
   // Cambiar esta URL por la de tu backend real
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000/api',
+  baseURL: import.meta.env.VITE_API_URL || 'https://api.ordinex.farutech.com',
   timeout: 30000,
   headers: {
     'Content-Type': 'application/json',
@@ -23,35 +23,96 @@ export const AUTH_CONFIG = {
 }
 
 export const ENDPOINTS = {
-  // Auth
+  // Auth - Ordinex API
   auth: {
-    login: '/auth/login',
-    register: '/auth/register',
-    logout: '/auth/logout',
-    refresh: '/auth/refresh',
-    me: '/auth/me',
-    menu: '/menu',
+    login: '/api/auth/login',
+    register: '/api/auth/register',
+    logout: '/api/auth/logout',
+    refresh: '/api/auth/refresh',
+    me: '/api/profile',
+    menu: '/api/auth/menu',
+    updateProfile: '/api/profile',
+    changePassword: '/api/profile/change-password',
   },
   // Users
   users: {
-    list: '/users',
-    create: '/users',
-    update: (id: string | number) => `/users/${id}`,
-    delete: (id: string | number) => `/users/${id}`,
-    show: (id: string | number) => `/users/${id}`,
-    bulkDelete: '/users/bulk-delete',
+    list: '/api/users',
+    create: '/api/users',
+    update: (id: string | number) => `/api/users/${id}`,
+    delete: (id: string | number) => `/api/users/${id}`,
+    show: (id: string | number) => `/api/users/${id}`,
+    bulkDelete: '/api/users/bulk-delete',
+    toggleActive: (id: string | number) => `/api/users/${id}/toggle-active`,
   },
-  // Procesos especiales
+  // Roles
+  roles: {
+    list: '/api/roles',
+    create: '/api/roles',
+    update: (id: string | number) => `/api/roles/${id}`,
+    delete: (id: string | number) => `/api/roles/${id}`,
+    show: (id: string | number) => `/api/roles/${id}`,
+    toggleActive: (id: string | number) => `/api/roles/${id}/toggle-active`,
+  },
+  // Accesses
+  accesses: {
+    list: '/api/accesses',
+    create: '/api/accesses',
+    update: (id: string | number) => `/api/accesses/${id}`,
+    delete: (id: string | number) => `/api/accesses/${id}`,
+    show: (id: string | number) => `/api/accesses/${id}`,
+    toggleActive: (id: string | number) => `/api/accesses/${id}/toggle-active`,
+  },
+  // Customers - Ordinex
+  customers: {
+    list: '/api/customers',
+    create: '/api/customers',
+    update: (id: string | number) => `/api/customers/${id}`,
+    delete: (id: string | number) => `/api/customers/${id}`,
+    show: (id: string | number) => `/api/customers/${id}`,
+  },
+  // Deliveries - Ordinex
+  deliveries: {
+    list: '/api/deliveries',
+    create: '/api/deliveries',
+    show: (id: string) => `/api/deliveries/${id}`,
+    delete: (id: string) => `/api/deliveries/${id}`,
+  },
+  // Items - Ordinex
+  items: {
+    list: '/api/items',
+    create: '/api/items',
+    update: (id: string | number) => `/api/items/${id}`,
+    delete: (id: string | number) => `/api/items/${id}`,
+    show: (id: string | number) => `/api/items/${id}`,
+  },
+  // Cash Registers - Ordinex
+  cashRegisters: {
+    list: '/api/cash-registers',
+    create: '/api/cash-registers',
+    update: (id: string | number) => `/api/cash-registers/${id}`,
+    delete: (id: string | number) => `/api/cash-registers/${id}`,
+    show: (id: string | number) => `/api/cash-registers/${id}`,
+    toggleActive: (id: string | number) => `/api/cash-registers/${id}/toggle-active`,
+  },
+  // Document Types - Ordinex
+  documentTypes: {
+    list: '/api/document-types',
+    create: '/api/document-types',
+    update: (id: string | number) => `/api/document-types/${id}`,
+    delete: (id: string | number) => `/api/document-types/${id}`,
+    show: (id: string | number) => `/api/document-types/${id}`,
+  },
+  // Procesos especiales (para funcionalidad futura)
   processes: {
-    list: '/processes',
-    execute: '/processes/execute',
-    status: (id: string | number) => `/processes/${id}/status`,
-    history: '/processes/history',
+    list: '/api/processes',
+    execute: '/api/processes/execute',
+    status: (id: string | number) => `/api/processes/${id}/status`,
+    history: '/api/processes/history',
   },
   // Dashboard
   dashboard: {
-    stats: '/dashboard/stats',
-    charts: '/dashboard/charts',
-    activity: '/dashboard/activity',
+    stats: '/api/dashboard/stats',
+    charts: '/api/dashboard/charts',
+    activity: '/api/dashboard/activity',
   },
 }

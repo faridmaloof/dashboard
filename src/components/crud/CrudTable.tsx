@@ -1,86 +1,99 @@
 /**
- * Tabla CRUD reutilizable con acciones
+ * Componente CrudTable - Tabla reutilizable con TanStack Table
  */
 
-import { useState } from 'react'
 import {
   flexRender,
   getCoreRowModel,
   getSortedRowModel,
   useReactTable,
+  type ColumnDef,
+  type SortingState,
 } from '@tanstack/react-table'
-import type { ColumnDef, SortingState } from '@tanstack/react-table'
-import { ChevronUpIcon, ChevronDownIcon } from '@heroicons/react/24/solid'
+import { useState } from 'react'
+import { ChevronUpIcon, ChevronDownIcon } from '@heroicons/react/24/outline'
 import clsx from 'clsx'
+import { TableSkeleton } from '../ui/Loading'
 
-interface CrudTableProps<T> {
-  data: T[]
-  columns: ColumnDef<T, any>[]
+interface CrudTableProps<TData> {
+  data: TData[]
+  columns: ColumnDef<TData, any>[]
   isLoading?: boolean
-  onRowClick?: (row: T) => void
   emptyMessage?: string
   selectable?: boolean
   selectedRows?: Set<string | number>
   onSelectionChange?: (selected: Set<string | number>) => void
 }
 
-export function CrudTable<T extends { id: string | number }>({
+export function CrudTable<TData extends { id?: string | number }>({
   data,
   columns,
   isLoading = false,
-  onRowClick,
   emptyMessage = 'No hay datos disponibles',
   selectable = false,
   selectedRows = new Set(),
   onSelectionChange,
-}: CrudTableProps<T>) {
+}: CrudTableProps<TData>) {
   const [sorting, setSorting] = useState<SortingState>([])
+
+  // Agregar columna de selección si es necesario
+  const finalColumns = selectable
+    ? [
+        {
+          id: 'select',
+          header: ({ table }: any) => (
+            <input
+              type="checkbox"
+              className="rounded border-gray-300 dark:border-gray-600 text-primary-600 focus:ring-primary-500"
+              checked={table.getIsAllRowsSelected()}
+              onChange={table.getToggleAllRowsSelectedHandler()}
+            />
+          ),
+          cell: ({ row }: any) => (
+            <input
+              type="checkbox"
+              className="rounded border-gray-300 dark:border-gray-600 text-primary-600 focus:ring-primary-500"
+              checked={selectedRows.has(row.original.id)}
+              onChange={() => {
+                const newSelected = new Set(selectedRows)
+                if (newSelected.has(row.original.id)) {
+                  newSelected.delete(row.original.id)
+                } else {
+                  newSelected.add(row.original.id)
+                }
+                onSelectionChange?.(newSelected)
+              }}
+            />
+          ),
+          size: 50,
+        },
+        ...columns,
+      ]
+    : columns
 
   const table = useReactTable({
     data,
-    columns,
-    state: { sorting },
+    columns: finalColumns,
+    state: {
+      sorting,
+    },
     onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
   })
 
-  const handleSelectAll = () => {
-    if (!onSelectionChange) return
-    
-    if (selectedRows.size === data.length) {
-      onSelectionChange(new Set())
-    } else {
-      onSelectionChange(new Set(data.map((row) => row.id)))
-    }
-  }
-
-  const handleSelectRow = (id: string | number) => {
-    if (!onSelectionChange) return
-    
-    const newSelection = new Set(selectedRows)
-    if (newSelection.has(id)) {
-      newSelection.delete(id)
-    } else {
-      newSelection.add(id)
-    }
-    onSelectionChange(newSelection)
-  }
-
   if (isLoading) {
     return (
-      <div className="animate-pulse space-y-4">
-        {[...Array(5)].map((_, i) => (
-          <div key={i} className="h-12 bg-gray-200 dark:bg-gray-700 rounded" />
-        ))}
+      <div className="p-4">
+        <TableSkeleton rows={5} columns={finalColumns.length} />
       </div>
     )
   }
 
-  if (data.length === 0) {
+  if (!data || data.length === 0) {
     return (
-      <div className="text-center py-12">
-        <p className="text-gray-500 dark:text-gray-400">{emptyMessage}</p>
+      <div className="flex flex-col items-center justify-center py-12 px-4">
+        <p className="text-gray-500 dark:text-gray-400 text-sm">{emptyMessage}</p>
       </div>
     )
   }
@@ -88,80 +101,45 @@ export function CrudTable<T extends { id: string | number }>({
   return (
     <div className="overflow-x-auto">
       <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-        <thead className="bg-gray-50 dark:bg-gray-800">
+        <thead className="bg-gray-50 dark:bg-gray-800/50">
           {table.getHeaderGroups().map((headerGroup) => (
             <tr key={headerGroup.id}>
-              {selectable && (
-                <th className="px-6 py-3 text-left w-12">
-                  <input
-                    type="checkbox"
-                    checked={selectedRows.size === data.length && data.length > 0}
-                    onChange={handleSelectAll}
-                    className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
-                  />
-                </th>
-              )}
               {headerGroup.headers.map((header) => (
                 <th
                   key={header.id}
-                  className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
-                >
-                  {header.isPlaceholder ? null : (
-                    <div
-                      className={clsx(
-                        'flex items-center gap-2',
-                        header.column.getCanSort() && 'cursor-pointer select-none'
-                      )}
-                      onClick={header.column.getToggleSortingHandler()}
-                    >
-                      {flexRender(header.column.columnDef.header, header.getContext())}
-                      {header.column.getCanSort() && (
-                        <span className="flex flex-col">
-                          <ChevronUpIcon
-                            className={clsx(
-                              'h-3 w-3',
-                              header.column.getIsSorted() === 'asc'
-                                ? 'text-primary-600'
-                                : 'text-gray-400'
-                            )}
-                          />
-                          <ChevronDownIcon
-                            className={clsx(
-                              'h-3 w-3 -mt-1',
-                              header.column.getIsSorted() === 'desc'
-                                ? 'text-primary-600'
-                                : 'text-gray-400'
-                            )}
-                          />
-                        </span>
-                      )}
-                    </div>
+                  className={clsx(
+                    'px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider',
+                    header.column.getCanSort() && 'cursor-pointer select-none hover:bg-gray-100 dark:hover:bg-gray-700/50'
                   )}
+                  onClick={header.column.getToggleSortingHandler()}
+                >
+                  <div className="flex items-center gap-2">
+                    {flexRender(header.column.columnDef.header, header.getContext())}
+                    {header.column.getCanSort() && (
+                      <span className="flex flex-col">
+                        {header.column.getIsSorted() === 'asc' ? (
+                          <ChevronUpIcon className="h-4 w-4" />
+                        ) : header.column.getIsSorted() === 'desc' ? (
+                          <ChevronDownIcon className="h-4 w-4" />
+                        ) : (
+                          <span className="text-gray-300 dark:text-gray-600">
+                            <ChevronUpIcon className="h-3 w-3" />
+                          </span>
+                        )}
+                      </span>
+                    )}
+                  </div>
                 </th>
               ))}
             </tr>
           ))}
         </thead>
-        <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
+        <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
           {table.getRowModel().rows.map((row) => (
             <tr
               key={row.id}
-              className={clsx(
-                'hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors',
-                onRowClick && 'cursor-pointer'
-              )}
-              onClick={() => onRowClick?.(row.original)}
+              className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors"
             >
-              {selectable && (
-                <td className="px-6 py-4 w-12" onClick={(e) => e.stopPropagation()}>
-                  <input
-                    type="checkbox"
-                    checked={selectedRows.has(row.original.id)}
-                    onChange={() => handleSelectRow(row.original.id)}
-                    className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
-                  />
-                </td>
-              )}
               {row.getVisibleCells().map((cell) => (
                 <td
                   key={cell.id}
