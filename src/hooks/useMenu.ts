@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
-import { MENU_CONFIG, type MenuEntry, type MenuCategory, type MenuItemBase } from '@/config/menu.config'
+import { getMenuForModule, type MenuEntry, type MenuCategory, type MenuItemBase } from '@/config/menu.config'
 import { useAuth } from './useAuth'
+import { useModuleStore } from '@/store/moduleStore'
 import type { User } from '@/types'
 import { useQuery } from '@tanstack/react-query'
 import { apiService } from '@/services/api.service'
@@ -15,10 +16,11 @@ function canView(user: User | null | undefined, permission?: string) {
 
 export function useMenu() {
   const { user } = useAuth()
+  const { currentModule } = useModuleStore()
 
   // Try to fetch server-provided menu (override) using react-query
   const { data: serverMenu } = useQuery<MenuEntry[]>({
-    queryKey: ['menu', user?.id],
+    queryKey: ['menu', user?.id, currentModule],
     queryFn: async () => {
       try {
         const res = await apiService.get<MenuEntry[]>(ENDPOINTS.auth.menu)
@@ -33,7 +35,8 @@ export function useMenu() {
   })
 
   const menu = useMemo(() => {
-    const source = (serverMenu && serverMenu.length > 0) ? serverMenu : MENU_CONFIG
+    // Si hay menú del servidor, úsalo; si no, usa el menú del módulo activo
+    const source = (serverMenu && serverMenu.length > 0) ? serverMenu : getMenuForModule(currentModule)
     const result: MenuEntry[] = []
 
     for (const entry of source) {
@@ -51,7 +54,7 @@ export function useMenu() {
     }
 
     return result
-  }, [serverMenu, user])
+  }, [serverMenu, currentModule, user])
 
   return { menu, user }
 }

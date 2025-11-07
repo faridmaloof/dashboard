@@ -40,7 +40,7 @@ export function setTokens(token?: string | null, refreshToken?: string | null) {
 
 export function clearTokens() {
   try {
-    useAuthStore.getState().clearAccessToken()
+    useAuthStore.getState().clearAuth()
     localStorage.removeItem(AUTH_CONFIG.refreshTokenKey)
     localStorage.removeItem(AUTH_CONFIG.userKey)
   } catch {

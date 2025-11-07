@@ -108,54 +108,58 @@ export function ModuleSwitcher({
         <div className={clsx('relative', className)}>
           <Listbox.Button
             className={clsx(
-              'relative w-full cursor-pointer rounded-lg bg-white dark:bg-gray-800 py-2 pl-3 pr-10 text-left shadow-sm ring-1 ring-inset ring-gray-300 dark:ring-gray-600 focus:outline-none focus:ring-2 focus:ring-primary-500 sm:text-sm transition-all hover:ring-gray-400 dark:hover:ring-gray-500',
-              compact ? 'px-2' : ''
+              'relative w-full flex items-center gap-2.5 px-3 py-2',
+              'bg-white dark:bg-gray-800',
+              'border border-gray-200 dark:border-gray-700',
+              'rounded-lg shadow-sm',
+              'hover:border-gray-300 dark:hover:border-gray-600 hover:shadow',
+              'transition-all duration-200',
+              'focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:border-primary-500',
+              'cursor-pointer',
+              open && 'ring-2 ring-primary-500/30 border-primary-500',
+              compact && 'px-2 py-1.5'
             )}
           >
-            <span className="flex items-center gap-2.5">
-              {/* Ícono del módulo actual */}
-              <span className={clsx(
-                'flex-shrink-0 flex items-center justify-center rounded-md',
-                compact ? 'h-8 w-8' : 'h-9 w-9',
-                'bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400'
-              )}>
-                {current?.icon ? (
-                  <span className="h-5 w-5">{current.icon}</span>
-                ) : (
-                  <Squares2X2Icon className="h-5 w-5" />
-                )}
+            {/* Ícono del módulo actual */}
+            <span className={clsx(
+              'flex-shrink-0 flex items-center justify-center rounded-md',
+              compact ? 'h-7 w-7' : 'h-8 w-8',
+              'bg-primary-50 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400'
+            )}>
+              {current?.icon ? (
+                <span className="h-4 w-4">{current.icon}</span>
+              ) : (
+                <Squares2X2Icon className="h-4 w-4" />
+              )}
+            </span>
+
+            {/* Nombre */}
+            {!compact && (
+              <span className="flex-1 min-w-0">
+                <span className="block truncate text-sm font-medium text-gray-900 dark:text-white">
+                  {current?.name || 'Módulo'}
+                </span>
               </span>
+            )}
 
-              {/* Nombre y descripción */}
-              {!compact && (
-                <span className="flex flex-col min-w-0 flex-1">
-                  <span className="block truncate font-semibold text-gray-900 dark:text-white">
-                    {current?.name || 'Seleccionar módulo'}
-                  </span>
-                  {current?.description && (
-                    <span className="block truncate text-xs text-gray-500 dark:text-gray-400">
-                      {current.description}
-                    </span>
-                  )}
-                </span>
-              )}
+            {/* Badge */}
+            {current?.badge && !compact && (
+              <span
+                className={clsx(
+                  'flex-shrink-0 inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium',
+                  badgeVariants[current.badgeVariant || 'primary']
+                )}
+              >
+                {current.badge}
+              </span>
+            )}
 
-              {/* Badge */}
-              {current?.badge && !compact && (
-                <span
-                  className={clsx(
-                    'ml-auto flex-shrink-0 inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium',
-                    badgeVariants[current.badgeVariant || 'primary']
-                  )}
-                >
-                  {current.badge}
-                </span>
-              )}
-            </span>
-
-            <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
-              <ChevronUpDownIcon className="h-5 w-5 text-gray-400" aria-hidden="true" />
-            </span>
+            <ChevronUpDownIcon 
+              className={clsx(
+                'h-4 w-4 text-gray-400 transition-transform duration-200 flex-shrink-0',
+                open && 'rotate-180 text-primary-500'
+              )} 
+            />
           </Listbox.Button>
 
           <Transition

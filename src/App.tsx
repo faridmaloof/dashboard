@@ -11,6 +11,7 @@ import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { MainLayout } from './components/layout/MainLayout'
 import { ToastContainer } from './components/ui/Toast'
 import { LoginPage } from './pages/auth/LoginPage'
+import { ForgotPasswordPage } from './pages/auth/ForgotPasswordPage'
 import { DashboardPage } from './pages/dashboard/DashboardPage'
 import { UsersPage } from './pages/users/UsersPage'
 import { ProfilePage } from './pages/settings/ProfilePage'
@@ -22,12 +23,25 @@ const ComponentsPage = lazy(() => import('./pages/components/ComponentsPage'))
 const ProcessesPage = lazy(() => import('./pages/processes/ProcessesPage'))
 const GeneralSettingsPage = lazy(() => import('./pages/settings/GeneralSettingsPage'))
 const NotFoundPage = lazy(() => import('./pages/errors/NotFoundPage'))
+
 // Design System Pages
 const TokensPage = lazy(() => import('./pages/design-system/TokensPage'))
 const ColorsPage = lazy(() => import('./pages/design-system/ColorsPage'))
 const TypographyPage = lazy(() => import('./pages/design-system/TypographyPage'))
 const ComponentsLibraryPage = lazy(() => import('./pages/design-system/ComponentsLibraryPage'))
 const ChartsLibraryPage = lazy(() => import('./pages/design-system/ChartsLibraryPage'))
+
+// Module Pages - CRM
+const CrmDashboardPage = lazy(() => import('./pages/crm/CrmDashboardPage'))
+
+// Module Pages - Ventas
+const VentasDashboardPage = lazy(() => import('./pages/ventas/VentasDashboardPage'))
+
+// Module Pages - Inventario
+const InventarioDashboardPage = lazy(() => import('./pages/inventario/InventarioDashboardPage'))
+
+// Module Pages - Reportes
+const ReportesDashboardPage = lazy(() => import('./pages/reportes/ReportesDashboardPage'))
 
 // Configurar React Query
 const queryClient = new QueryClient({
@@ -50,6 +64,7 @@ function App() {
               <Routes>
                 {/* Public routes */}
                 <Route path="/login" element={<LoginPage />} />
+                <Route path="/forgot-password" element={<ForgotPasswordPage />} />
                 
                 {/* Protected routes */}
                 <Route path="/" element={<Navigate to="/dashboard" replace />} />
@@ -65,6 +80,22 @@ function App() {
                 {/* Examples */}
                 <Route path="/components" element={<RequireAuth><MainLayout><ComponentsPage /></MainLayout></RequireAuth>} />
                 <Route path="/charts" element={<RequireAuth><MainLayout><ChartsPage /></MainLayout></RequireAuth>} />
+                
+                {/* CRM Module */}
+                <Route path="/crm/dashboard" element={<RequireAuth><MainLayout><CrmDashboardPage /></MainLayout></RequireAuth>} />
+                <Route path="/crm/*" element={<RequireAuth><MainLayout><div className="text-center py-12 text-gray-500">Módulo CRM - Sección en construcción</div></MainLayout></RequireAuth>} />
+                
+                {/* Ventas Module */}
+                <Route path="/ventas/dashboard" element={<RequireAuth><MainLayout><VentasDashboardPage /></MainLayout></RequireAuth>} />
+                <Route path="/ventas/*" element={<RequireAuth><MainLayout><div className="text-center py-12 text-gray-500">Módulo Ventas - Sección en construcción</div></MainLayout></RequireAuth>} />
+                
+                {/* Inventario Module */}
+                <Route path="/inventario/dashboard" element={<RequireAuth><MainLayout><InventarioDashboardPage /></MainLayout></RequireAuth>} />
+                <Route path="/inventario/*" element={<RequireAuth><MainLayout><div className="text-center py-12 text-gray-500">Módulo Inventario - Sección en construcción</div></MainLayout></RequireAuth>} />
+                
+                {/* Reportes Module */}
+                <Route path="/reportes/dashboard" element={<RequireAuth><MainLayout><ReportesDashboardPage /></MainLayout></RequireAuth>} />
+                <Route path="/reportes/*" element={<RequireAuth><MainLayout><div className="text-center py-12 text-gray-500">Módulo Reportes - Sección en construcción</div></MainLayout></RequireAuth>} />
                 
                 {/* App Pages */}
                 <Route path="/users" element={<RequireAuth><MainLayout><UsersPage /></MainLayout></RequireAuth>} />

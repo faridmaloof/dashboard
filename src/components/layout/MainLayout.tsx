@@ -35,13 +35,15 @@ export function MainLayout({ children }: MainLayoutProps) {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <Sidebar />
       
+      {/* Main Content Area */}
       <div
         style={{ marginLeft: `${getMarginLeft()}px` }}
         className="transition-all duration-500 ease-out"
       >
         <Navbar />
         
-        <main className="p-6 lg:p-8">
+        {/* Main content with padding-top for fixed navbar */}
+        <main className="pt-14 p-6 lg:p-8">
           {children}
         </main>
       </div>

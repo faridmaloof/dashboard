@@ -127,6 +127,8 @@ export interface AppConfig extends BrandConfig {
   maxUploadSize?: number
   supportEmail?: string
   supportPhone?: string
+  // Método de recuperación de contraseña: 'email' o 'admin_request'
+  passwordRecoveryMethod?: 'email' | 'admin_request'
 }
 
 // Dashboard

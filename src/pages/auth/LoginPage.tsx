@@ -29,8 +29,7 @@ export function LoginPage() {
     e.preventDefault()
     const credentials = { email: formData.email, password: formData.password }
     try {
-      // login puede ser síncrono o async
-      await loginAsync(credentials as any)
+      await loginAsync(credentials, formData.remember)
     } catch (err) {
       // el hook maneja el error en loginError
     }
@@ -42,6 +41,11 @@ export function LoginPage() {
       ...prev,
       [name]: type === 'checkbox' ? checked : value
     }))
+  }
+
+  const handleForgotPassword = (e: React.MouseEvent) => {
+    e.preventDefault()
+    window.location.href = '/forgot-password'
   }
 
   return (
@@ -114,18 +118,24 @@ export function LoginPage() {
 
             {/* Remember me & Forgot password */}
             <div className="flex items-center justify-between">
-              <Checkbox
-                id="remember"
-                name="remember"
-                checked={formData.remember}
-                onChange={handleChange}
-                label="Recordarme"
-              />
+              <div className="flex items-center">
+                <Checkbox
+                  id="remember"
+                  name="remember"
+                  checked={formData.remember}
+                  onChange={handleChange}
+                  label="Recordarme"
+                />
+              </div>
 
               <div className="text-sm">
-                <a href="#" className="font-medium text-primary-600 dark:text-primary-400 hover:text-primary-500 dark:hover:text-primary-300 transition-colors duration-200">
+                <button
+                  type="button"
+                  onClick={handleForgotPassword}
+                  className="font-medium text-primary-600 dark:text-primary-400 hover:text-primary-500 dark:hover:text-primary-300 transition-colors duration-200"
+                >
                   ¿Olvidaste tu contraseña?
-                </a>
+                </button>
               </div>
             </div>
 

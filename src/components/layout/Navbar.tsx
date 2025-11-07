@@ -17,28 +17,132 @@ import {
   Cog6ToothIcon,
   UserIcon,
 } from '@heroicons/react/24/outline'
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
 import { useSidebarStore } from '@/store/sidebarStore'
 import { useThemeStore } from '@/store/themeStore'
+import { useModuleStore } from '@/store/moduleStore'
 import { Breadcrumb } from '../ui/Breadcrumb'
 import type { BreadcrumbItem } from '../ui/Breadcrumb'
 import clsx from 'clsx'
 import { useState } from 'react'
 import { SearchModal } from './SearchModal'
 import { MagnifyingGlassIcon } from '@heroicons/react/24/outline'
+import { ModuleSwitcher } from '../ui' // ✅ Importar desde index centralizado
 
 // Breadcrumb mapping with routes
 const breadcrumbMap: Record<string, BreadcrumbItem[]> = {
   '/dashboard': [{ label: 'Dashboard', href: '/dashboard' }],
+  
+  // CRM Module Routes
+  '/crm/dashboard': [
+    { label: 'CRM', href: '/crm/dashboard' },
+    { label: 'Dashboard', href: '/crm/dashboard' }
+  ],
+  '/crm/clients': [
+    { label: 'CRM', href: '/crm/dashboard' },
+    { label: 'Clientes', href: '/crm/clients' }
+  ],
+  '/crm/leads': [
+    { label: 'CRM', href: '/crm/dashboard' },
+    { label: 'Leads', href: '/crm/leads' }
+  ],
+  '/crm/segments': [
+    { label: 'CRM', href: '/crm/dashboard' },
+    { label: 'Segmentos', href: '/crm/segments' }
+  ],
+  '/crm/calls': [
+    { label: 'CRM', href: '/crm/dashboard' },
+    { label: 'Llamadas', href: '/crm/calls' }
+  ],
+  '/crm/emails': [
+    { label: 'CRM', href: '/crm/dashboard' },
+    { label: 'Correos', href: '/crm/emails' }
+  ],
+  '/crm/meetings': [
+    { label: 'CRM', href: '/crm/dashboard' },
+    { label: 'Reuniones', href: '/crm/meetings' }
+  ],
+  
+  // Ventas Module Routes
+  '/ventas/dashboard': [
+    { label: 'Ventas', href: '/ventas/dashboard' },
+    { label: 'Dashboard', href: '/ventas/dashboard' }
+  ],
+  '/ventas/orders/new': [
+    { label: 'Ventas', href: '/ventas/dashboard' },
+    { label: 'Nueva Orden', href: '/ventas/orders/new' }
+  ],
+  '/ventas/orders/active': [
+    { label: 'Ventas', href: '/ventas/dashboard' },
+    { label: 'Órdenes Activas', href: '/ventas/orders/active' }
+  ],
+  '/ventas/invoices': [
+    { label: 'Ventas', href: '/ventas/dashboard' },
+    { label: 'Facturas', href: '/ventas/invoices' }
+  ],
+  
+  // Inventario Module Routes
+  '/inventario/dashboard': [
+    { label: 'Inventario', href: '/inventario/dashboard' },
+    { label: 'Dashboard', href: '/inventario/dashboard' }
+  ],
+  '/inventario/products': [
+    { label: 'Inventario', href: '/inventario/dashboard' },
+    { label: 'Productos', href: '/inventario/products' }
+  ],
+  '/inventario/low-stock': [
+    { label: 'Inventario', href: '/inventario/dashboard' },
+    { label: 'Stock Bajo', href: '/inventario/low-stock' }
+  ],
+  
+  // Reportes Module Routes
+  '/reportes/dashboard': [
+    { label: 'Reportes', href: '/reportes/dashboard' },
+    { label: 'Centro de Reportes', href: '/reportes/dashboard' }
+  ],
+  '/reportes/financial/balance': [
+    { label: 'Reportes', href: '/reportes/dashboard' },
+    { label: 'Balance General', href: '/reportes/financial/balance' }
+  ],
+  '/reportes/sales/period': [
+    { label: 'Reportes', href: '/reportes/dashboard' },
+    { label: 'Ventas por Período', href: '/reportes/sales/period' }
+  ],
+  
+  // Design System Routes
+  '/design-system/tokens': [
+    { label: 'Design System', href: '/design-system/tokens' },
+    { label: 'Tokens', href: '/design-system/tokens' }
+  ],
+  '/design-system/colors': [
+    { label: 'Design System', href: '/design-system/tokens' },
+    { label: 'Colores', href: '/design-system/colors' }
+  ],
+  '/design-system/typography': [
+    { label: 'Design System', href: '/design-system/tokens' },
+    { label: 'Tipografía', href: '/design-system/typography' }
+  ],
+  '/design-system/components': [
+    { label: 'Design System', href: '/design-system/tokens' },
+    { label: 'Componentes', href: '/design-system/components' }
+  ],
+  '/design-system/charts': [
+    { label: 'Design System', href: '/design-system/tokens' },
+    { label: 'Charts', href: '/design-system/charts' }
+  ],
+  
+  // Examples Routes
   '/components': [
-    { label: 'Componentes', href: '/components' },
-    { label: 'UI', href: '/components' }
+    { label: 'Ejemplos', href: '/components' },
+    { label: 'UI Components', href: '/components' }
   ],
   '/charts': [
-    { label: 'Componentes', href: '/components' },
+    { label: 'Ejemplos', href: '/components' },
     { label: 'Charts', href: '/charts' }
   ],
+  
+  // Management Routes
   '/users': [
     { label: 'Gestión', href: '/users' },
     { label: 'Usuarios', href: '/users' }
@@ -51,6 +155,8 @@ const breadcrumbMap: Record<string, BreadcrumbItem[]> = {
     { label: 'Gestión', href: '/reports' },
     { label: 'Reportes', href: '/reports' }
   ],
+  
+  // Security Routes
   '/security/roles': [
     { label: 'Seguridad', href: '/security/roles' },
     { label: 'Roles y Permisos', href: '/security/roles' }
@@ -59,6 +165,8 @@ const breadcrumbMap: Record<string, BreadcrumbItem[]> = {
     { label: 'Seguridad', href: '/security/audit' },
     { label: 'Auditoría', href: '/security/audit' }
   ],
+  
+  // Settings Routes
   '/settings/profile': [
     { label: 'Configuración', href: '/settings/profile' },
     { label: 'Perfil', href: '/settings/profile' }
@@ -102,13 +210,60 @@ const notifications = [
 ]
 
 export function Navbar() {
-  const { toggle } = useSidebarStore()
+  const { toggle, isMobile, isOpen, sidebarWidth } = useSidebarStore()
   const { theme, toggleTheme } = useThemeStore()
+  const { currentModule, modules, setCurrentModule } = useModuleStore()
   const location = useLocation()
+  const navigate = useNavigate()
   const [isSearchOpen, setIsSearchOpen] = useState(false)
   
   const breadcrumbs = breadcrumbMap[location.pathname] || [{ label: 'Dashboard', href: '/dashboard' }]
   const unreadCount = notifications.filter(n => !n.read).length
+
+  // Manejar cambio de módulo con navegación
+  const handleModuleChange = (moduleId: string) => {
+    setCurrentModule(moduleId)
+    
+    // Navegar al dashboard del módulo
+    const moduleRoutes: Record<string, string> = {
+      dashboard: '/dashboard',
+      crm: '/crm/dashboard',
+      ventas: '/ventas/dashboard',
+      inventario: '/inventario/dashboard',
+      reportes: '/reportes/dashboard',
+    }
+    
+    const route = moduleRoutes[moduleId] || '/dashboard'
+    navigate(route)
+  }
+
+  // Auto-cambiar módulo según la ruta actual
+  useEffect(() => {
+    const path = location.pathname
+    let moduleId = 'dashboard'
+    
+    if (path.startsWith('/crm')) moduleId = 'crm'
+    else if (path.startsWith('/ventas')) moduleId = 'ventas'
+    else if (path.startsWith('/inventario')) moduleId = 'inventario'
+    else if (path.startsWith('/reportes')) moduleId = 'reportes'
+    
+    if (moduleId !== currentModule) {
+      setCurrentModule(moduleId)
+    }
+  }, [location.pathname, currentModule, setCurrentModule])
+
+  // Calcular ancho del navbar según estado del sidebar
+  const getNavbarWidth = () => {
+    if (isMobile) return '100%'
+    if (!isOpen) return 'calc(100% - 63px)' // Sidebar colapsado: 63px
+    return `calc(100% - ${sidebarWidth}px)` // Sidebar expandido: ancho dinámico
+  }
+
+  const getNavbarLeft = () => {
+    if (isMobile) return 0
+    if (!isOpen) return 63 // Colapsado
+    return sidebarWidth // Expandido
+  }
 
   // Atajo de teclado para abrir búsqueda
   useEffect(() => {
@@ -136,10 +291,16 @@ export function Navbar() {
   }
 
   return (
-    <header className="sticky top-0 z-20 bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border-b border-gray-200/50 dark:border-gray-700/50 shadow-sm">
+    <header 
+      style={{ 
+        width: getNavbarWidth(),
+        left: `${getNavbarLeft()}px`
+      }}
+      className="fixed top-0 z-20 bg-white/80 dark:bg-gray-800/80 backdrop-blur-md border-b border-gray-200/50 dark:border-gray-700/50 shadow-sm transition-all duration-500 ease-out"
+    >
       <div className="flex items-center justify-between h-14 px-4 lg:px-6">
         {/* Left side */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
           <button
             onClick={toggle}
             className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-all duration-200 p-2 hover:bg-gray-100/80 dark:hover:bg-gray-700/80 rounded-xl"
@@ -147,6 +308,21 @@ export function Navbar() {
           >
             <Bars3Icon className="h-5 w-5" />
           </button>
+
+          {/* Module Switcher - Diseño Profesional */}
+          <div className="hidden lg:flex items-center">
+            <ModuleSwitcher
+              modules={modules}
+              currentModule={currentModule}
+              onModuleChange={handleModuleChange}
+              searchable={true}
+              compact={false}
+              className="min-w-[200px]"
+            />
+          </div>
+
+          {/* Divider */}
+          <div className="hidden lg:block h-8 w-px bg-gray-200 dark:bg-gray-700" />
 
           {/* Breadcrumbs */}
           <div className="hidden sm:block">

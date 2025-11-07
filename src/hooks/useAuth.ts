@@ -9,12 +9,14 @@ import { demoAuthService, isDemoModeEnabled } from '@/services/demo-auth.service
 import { AUTH_CONFIG, ENDPOINTS } from '../config/api.config'
 import type { AuthResponse, LoginCredentials, RegisterData, User } from '@/types'
 import { getAccessToken, setTokens, clearTokens } from '@/utils/auth'
+import { useAuthStore } from '@/store/authStore'
 import { useNavigate } from 'react-router-dom'
 import { useEffect } from 'react'
 
 export function useAuth() {
   const queryClient = useQueryClient()
   const navigate = useNavigate()
+  const { setTokens: setStoreTokens, clearAuth, rememberMe } = useAuthStore()
 
   // Obtener usuario actual
   const { data: user, isLoading } = useQuery<User | null>({
@@ -25,11 +27,11 @@ export function useAuth() {
 
       try {
         const response = await apiService.get<User>(ENDPOINTS.auth.me)
-        // asegurar que si la API devuelve permisos, se reflejen en cache
         return response.data
       } catch {
         // Si falla, limpiar token inválido
         clearTokens()
+        clearAuth()
         return null
       }
     },
@@ -37,17 +39,17 @@ export function useAuth() {
     retry: false,
   })
 
-  // On app boot, attempt silent refresh if no token (cookie-based flow)
+  // On app boot, attempt silent refresh if no token
   useEffect(() => {
     const trySilentRefresh = async () => {
       const token = getAccessToken()
       if (token) return
 
       try {
-        // Attempt refresh (api.service will call /auth/refresh)
         const response = await apiService.post<AuthResponse>(ENDPOINTS.auth.refresh)
         if (response && response.data) {
-          setTokens(response.data.token, response.data.refreshToken)
+          setTokens(response.data.token, response.data.refreshToken || '')
+          setStoreTokens(response.data.token, response.data.refreshToken || '', rememberMe)
           queryClient.setQueryData(['auth', 'user'], response.data.user)
         }
       } catch {
@@ -59,16 +61,17 @@ export function useAuth() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // Login
+  // Login con remember me
   const loginMutation = useMutation({
-    mutationFn: async (credentials: LoginCredentials) => {
+    mutationFn: async (params: { credentials: LoginCredentials; remember?: boolean }) => {
+      const { credentials, remember = false } = params
+      
       // Primero intentar con el servicio demo si está habilitado
       if (isDemoModeEnabled()) {
         try {
           const demoResponse = await demoAuthService.login(credentials)
-          return demoResponse
+          return { ...demoResponse, remember }
         } catch (demoError) {
-          // Si falla el demo, intentar con la API real
           console.log('Demo auth failed, trying real API...')
         }
       }
@@ -76,10 +79,8 @@ export function useAuth() {
       // Intentar con API real
       try {
         const response = await apiService.post<AuthResponse>(ENDPOINTS.auth.login, credentials)
-        return response.data
+        return { ...response.data, remember }
       } catch (apiError: any) {
-        // Si la API real también falla y el modo demo está habilitado,
-        // dar un mensaje más claro
         if (isDemoModeEnabled()) {
           throw new Error('Credenciales inválidas. Usa: demo@farutech.com / demo123')
         }
@@ -87,12 +88,15 @@ export function useAuth() {
       }
     },
     onSuccess: (data) => {
-      setTokens(data.token, data.refreshToken)
-      if (data.user) {
+      const { token, refreshToken, user, remember } = data
+      setTokens(token, refreshToken || '')
+      setStoreTokens(token, refreshToken || '', remember)
+      
+      if (user) {
         try {
-          localStorage.setItem(AUTH_CONFIG.userKey, JSON.stringify(data.user))
+          localStorage.setItem(AUTH_CONFIG.userKey, JSON.stringify(user))
         } catch {}
-        queryClient.setQueryData(['auth', 'user'], data.user)
+        queryClient.setQueryData(['auth', 'user'], user)
       }
       navigate('/dashboard')
     },
@@ -127,6 +131,7 @@ export function useAuth() {
     },
     onSuccess: () => {
       clearTokens()
+      clearAuth()
       queryClient.setQueryData(['auth', 'user'], null)
       queryClient.clear()
       navigate('/login')
@@ -147,8 +152,10 @@ export function useAuth() {
     user,
     isAuthenticated: !!user,
     isLoading,
-    login: loginMutation.mutate,
-    loginAsync: loginMutation.mutateAsync,
+    login: (credentials: LoginCredentials, remember?: boolean) => 
+      loginMutation.mutate({ credentials, remember }),
+    loginAsync: (credentials: LoginCredentials, remember?: boolean) => 
+      loginMutation.mutateAsync({ credentials, remember }),
     isLoggingIn: loginMutation.isPending,
     loginError: loginMutation.error,
     register: registerMutation.mutate,

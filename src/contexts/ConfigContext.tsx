@@ -4,23 +4,23 @@
  */
 
 import { createContext, useContext, useEffect, useState, useCallback, useMemo } from 'react'
-import type { BrandConfig } from '@/types'
+import type { AppConfig } from '@/types'
 
 // Extender Window para la API de consola
 declare global {
   interface Window {
-    brandConfig?: {
+    AppConfig?: {
       reset: () => void
       resetToDefault: () => void
       setAsDefault: () => void
-      getCurrent: () => BrandConfig
-      getDefault: () => BrandConfig
+      getCurrent: () => AppConfig
+      getDefault: () => AppConfig
     }
   }
 }
 
 // Configuración por defecto
-const DEFAULT_CONFIG: BrandConfig = {
+const DEFAULT_CONFIG: AppConfig = {
   brandName: 'FaruTech',
   pageTitle: 'FaruTech - Admin Panel',
   logoUrl: '/Logo.png',
@@ -29,6 +29,8 @@ const DEFAULT_CONFIG: BrandConfig = {
   copyright: '© 2025 FaruTech',
   primaryColor: '#ffffff',
   description: 'Gestiona tu negocio de manera eficiente con nuestra plataforma integral de administración',
+  supportEmail: 'soporte@farutech.com',
+  passwordRecoveryMethod: 'email', // Por defecto: envío automático
 }
 
 // Keys para localStorage
@@ -38,9 +40,9 @@ const STORAGE_TIMESTAMP_KEY = 'app_brand_config_timestamp'
 const CACHE_DURATION = 1000 * 60 * 60 // 1 hora
 
 interface ConfigContextType {
-  config: BrandConfig
-  defaultConfig: BrandConfig // Exponer config por defecto
-  updateConfig: (newConfig: Partial<BrandConfig>) => Promise<void>
+  config: AppConfig
+  defaultConfig: AppConfig // Exponer config por defecto
+  updateConfig: (newConfig: Partial<AppConfig>) => Promise<void>
   resetConfig: () => void
   resetToDefault: () => void 
   setAsDefault: () => void
@@ -60,8 +62,8 @@ export function useConfig() {
 
 // Provider component
 export function ConfigProvider({ children }: { children: React.ReactNode }) {
-  const [config, setConfig] = useState<BrandConfig>(DEFAULT_CONFIG)
-  const [defaultConfig, setDefaultConfig] = useState<BrandConfig>(DEFAULT_CONFIG)
+  const [config, setConfig] = useState<AppConfig>(DEFAULT_CONFIG)
+  const [defaultConfig, setDefaultConfig] = useState<AppConfig>(DEFAULT_CONFIG)
   const [isLoading, setIsLoading] = useState(true)
 
   // Cargar configuración desde localStorage o API
@@ -82,7 +84,7 @@ export function ConfigProvider({ children }: { children: React.ReactNode }) {
   // Exponer API en consola para administradores
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      window.brandConfig = {
+      window.AppConfig = {
         reset: resetConfig,
         resetToDefault,
         setAsDefault,
@@ -94,7 +96,7 @@ export function ConfigProvider({ children }: { children: React.ReactNode }) {
     // Cleanup al desmontar
     return () => {
       if (typeof window !== 'undefined') {
-        delete window.brandConfig
+        delete window.AppConfig
       }
     }
   }, [config, defaultConfig])
@@ -133,7 +135,7 @@ export function ConfigProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  const updateConfig = useCallback(async (newConfig: Partial<BrandConfig>) => {
+  const updateConfig = useCallback(async (newConfig: Partial<AppConfig>) => {
     try {
       // 1. Actualizar en el backend
       // TODO: Implementar llamada real al backend
@@ -194,7 +196,7 @@ export function ConfigProvider({ children }: { children: React.ReactNode }) {
 
 // Helper functions
 
-function loadFromCache(): BrandConfig | null {
+function loadFromCache(): AppConfig | null {
   try {
     const cached = localStorage.getItem(STORAGE_KEY)
     const timestamp = localStorage.getItem(STORAGE_TIMESTAMP_KEY)
@@ -209,25 +211,25 @@ function loadFromCache(): BrandConfig | null {
       return null
     }
     
-    return JSON.parse(cached) as BrandConfig
+    return JSON.parse(cached) as AppConfig
   } catch (error) {
     console.error('Error loading config from cache:', error)
     return null
   }
 }
 
-function loadDefaultsFromStorage(): BrandConfig | null {
+function loadDefaultsFromStorage(): AppConfig | null {
   try {
     const defaults = localStorage.getItem(STORAGE_DEFAULT_KEY)
     if (!defaults) return null
-    return JSON.parse(defaults) as BrandConfig
+    return JSON.parse(defaults) as AppConfig
   } catch (error) {
     console.error('Error loading defaults from storage:', error)
     return null
   }
 }
 
-function saveDefaultsToStorage(config: BrandConfig) {
+function saveDefaultsToStorage(config: AppConfig) {
   try {
     localStorage.setItem(STORAGE_DEFAULT_KEY, JSON.stringify(config))
   } catch (error) {
@@ -235,7 +237,7 @@ function saveDefaultsToStorage(config: BrandConfig) {
   }
 }
 
-function saveToCache(config: BrandConfig) {
+function saveToCache(config: AppConfig) {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(config))
     localStorage.setItem(STORAGE_TIMESTAMP_KEY, Date.now().toString())
@@ -258,3 +260,4 @@ function updateFavicon(logoUrl: string) {
     console.error('Error updating favicon:', error)
   }
 }
+

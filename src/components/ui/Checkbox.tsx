@@ -32,6 +32,8 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
       lg: 'h-6 w-6',
     }
 
+    const inputId = props.id || `checkbox-${Math.random().toString(36).substr(2, 9)}`
+
     return (
       <div className={className}>
         <div className="flex items-start">
@@ -40,10 +42,12 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
               <input
                 ref={ref}
                 type="checkbox"
+                id={inputId}
                 className="sr-only peer"
                 {...props}
               />
-              <div
+              <label
+                htmlFor={inputId}
                 className={clsx(
                   'flex items-center justify-center border-2 transition-all duration-200 cursor-pointer',
                   'peer-focus:ring-2 peer-focus:ring-primary-500 peer-focus:ring-offset-2',
@@ -66,13 +70,16 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
                     size === 'lg' && 'h-5 w-5'
                   )}
                 />
-              </div>
+              </label>
             </div>
           </div>
           {(label || description) && (
             <div className="ml-3 text-sm">
               {label && (
-                <label className="font-medium text-gray-900 dark:text-white cursor-pointer">
+                <label 
+                  htmlFor={inputId}
+                  className="font-medium text-gray-900 dark:text-white cursor-pointer"
+                >
                   {label}
                 </label>
               )}
