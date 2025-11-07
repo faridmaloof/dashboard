@@ -44,6 +44,8 @@ interface PhoneInputProps {
   validationMode?: ValidationMode
   /** Mostrar input de búsqueda para filtrar países */
   showSearch?: boolean
+  /** Deshabilitar el componente (modo solo lectura) */
+  disabled?: boolean
 }
 
 export function PhoneInput({
@@ -57,6 +59,7 @@ export function PhoneInput({
   pattern = /^[0-9]*$/,
   validationMode = 'block',
   showSearch = false,
+  disabled = false,
 }: PhoneInputProps) {
   const [selectedCountry, setSelectedCountry] = useState<Country>(
     countries.find(c => c.code === defaultCountry) || countries[0]
@@ -138,7 +141,7 @@ export function PhoneInput({
 
       <div className="flex gap-2">
         {/* Country selector */}
-        <Listbox value={selectedCountry} onChange={handleCountryChange}>
+        <Listbox value={selectedCountry} onChange={handleCountryChange} disabled={disabled}>
           <div className="relative w-32">
             <Listbox.Button
               className={clsx(
@@ -149,6 +152,10 @@ export function PhoneInput({
                   ? 'border-red-300 dark:border-red-700'
                   : 'border-gray-300 dark:border-gray-600'
               )}
+              disabled={disabled}
+              aria-disabled={disabled}
+              // cuando está deshabilitado quitar el pointer cursor
+              style={disabled ? { cursor: 'not-allowed' } : undefined}
             >
               <span className="flex items-center gap-2">
                 <span className="text-xl leading-none">{selectedCountry.flag}</span>
@@ -162,7 +169,7 @@ export function PhoneInput({
             </Listbox.Button>
 
             <Listbox.Options className="absolute z-50 mt-2 max-h-60 w-72 overflow-hidden rounded-xl bg-white dark:bg-gray-800 shadow-2xl ring-1 ring-black/5 dark:ring-white/5">
-              {showSearch && (
+              {showSearch && !disabled && (
                 <div className="sticky top-0 p-2 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
                   <input
                     type="text"
@@ -235,6 +242,9 @@ export function PhoneInput({
                 ? 'border-red-300 dark:border-red-700'
                 : 'border-gray-300 dark:border-gray-600'
             )}
+            disabled={disabled}
+            aria-disabled={disabled}
+            style={disabled ? { backgroundColor: 'transparent' } : undefined}
           />
         </div>
       </div>

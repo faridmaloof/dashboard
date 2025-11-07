@@ -48,8 +48,15 @@ import {
   ExclamationTriangleIcon,
   InformationCircleIcon,
   XCircleIcon,
+  PlusIcon,
+  TrashIcon,
 } from '@heroicons/react/24/outline'
 import type { BreadcrumbItem, DropdownItem, ListBoxOption, ListGroupItem, RadioOption, TabItem } from '@/components/ui'
+import { DataTable } from '@/components/ui/DataTable'
+import type { DataTableActions } from '@/components/ui/DataTable'
+import type { ColumnDef } from '@tanstack/react-table'
+import type { User } from '@/types'
+import { notify } from '@/store/notificationStore'
 
 export default function ComponentsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -61,6 +68,197 @@ export default function ComponentsPage() {
   const [dropdownValue, setDropdownValue] = useState('')
   const [listBoxValue, setListBoxValue] = useState('')
   const [phoneValue, setPhoneValue] = useState('')
+
+  // --- DataTable demo component (local to this page) ---
+  function DataTableDemo() {
+    const [tablePage, setTablePage] = useState(1)
+    const [tablePerPage, setTablePerPage] = useState(5)
+    const [tableSelected, setTableSelected] = useState<Set<string | number>>(new Set())
+    const [tableSearch, setTableSearch] = useState('')
+
+    const mockUsers: User[] = [
+      { id: 1, name: 'Juan Pérez', email: 'juan@example.com', role: 'admin', avatar: '', createdAt: '2024-01-15' },
+      { id: 2, name: 'María García', email: 'maria@example.com', role: 'user', avatar: '', createdAt: '2024-01-16' },
+      { id: 3, name: 'Carlos López', email: 'carlos@example.com', role: 'moderator', avatar: '', createdAt: '2024-01-17' },
+      { id: 4, name: 'Ana Martínez', email: 'ana@example.com', role: 'user', avatar: '', createdAt: '2024-01-18' },
+      { id: 5, name: 'Pedro Sánchez', email: 'pedro@example.com', role: 'user', avatar: '', createdAt: '2024-01-19' },
+      { id: 6, name: 'Lucía Rivera', email: 'lucia@example.com', role: 'user', avatar: '', createdAt: '2024-01-20' },
+      { id: 7, name: 'Andrés Gómez', email: 'andres@example.com', role: 'moderator', avatar: '', createdAt: '2024-01-21' },
+    ]
+
+    // Filtrar por búsqueda
+    const filteredUsers = tableSearch
+      ? mockUsers.filter(
+          (user) =>
+            user.name.toLowerCase().includes(tableSearch.toLowerCase()) ||
+            user.email.toLowerCase().includes(tableSearch.toLowerCase())
+        )
+      : mockUsers
+
+    const columns: ColumnDef<User>[] = [
+      { accessorKey: 'name', header: 'Nombre', enableSorting: true },
+      { accessorKey: 'email', header: 'Email', enableSorting: true },
+      {
+        accessorKey: 'role',
+        header: 'Rol',
+        cell: ({ row }) => (
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary-100 dark:bg-primary-900/30 text-primary-800 dark:text-primary-200">
+            {row.original.role}
+          </span>
+        ),
+      },
+      { accessorKey: 'createdAt', header: 'Creado', enableSorting: true },
+    ]
+
+    const actions: DataTableActions<User> = {
+      onView: (user) => notify.info('Ver', `Viendo detalles de ${user.name}`),
+      onEdit: (user) => notify.info('Editar', `Editando ${user.name}`),
+      onDelete: (user) => {
+        if (confirm(`¿Eliminar a ${user.name}?`)) {
+          notify.success('Eliminado', `${user.name} ha sido eliminado`)
+        }
+      },
+    }
+
+    const start = (tablePage - 1) * tablePerPage
+    const pageData = filteredUsers.slice(start, start + tablePerPage)
+
+    return (
+      <div className="space-y-6">
+        {/* Ejemplo 1: Básico */}
+        <div>
+          <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+            Ejemplo 1: Tabla Básica
+          </h4>
+          <DataTable data={pageData} columns={columns} wrapped={false} />
+        </div>
+
+        <Divider />
+
+        {/* Ejemplo 2: Con búsqueda */}
+        <div>
+          <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+            Ejemplo 2: Con Búsqueda
+          </h4>
+          <DataTable
+            data={pageData}
+            columns={columns}
+            searchable
+            searchPlaceholder="Buscar por nombre o email..."
+            searchValue={tableSearch}
+            onSearch={setTableSearch}
+            wrapped={false}
+          />
+        </div>
+
+        <Divider />
+
+        {/* Ejemplo 3: Con paginación */}
+        <div>
+          <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+            Ejemplo 3: Con Paginación
+          </h4>
+          <DataTable
+            data={pageData}
+            columns={columns}
+            pagination={{
+              page: tablePage,
+              perPage: tablePerPage,
+              total: filteredUsers.length,
+              onPageChange: setTablePage,
+              onPerPageChange: setTablePerPage,
+            }}
+            wrapped={false}
+          />
+        </div>
+
+        <Divider />
+
+        {/* Ejemplo 4: Con acciones */}
+        <div>
+          <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+            Ejemplo 4: Con Acciones (Ver, Editar, Eliminar)
+          </h4>
+          <DataTable data={pageData} columns={columns} actions={actions} wrapped={false} />
+        </div>
+
+        <Divider />
+
+        {/* Ejemplo 5: Con selección */}
+        <div>
+          <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+            Ejemplo 5: Con Selección Múltiple
+          </h4>
+          {tableSelected.size > 0 && (
+            <div className="mb-3 p-3 bg-primary-50 dark:bg-primary-900/20 rounded-lg">
+              <p className="text-sm text-primary-700 dark:text-primary-300">
+                ✓ {tableSelected.size} {tableSelected.size === 1 ? 'fila seleccionada' : 'filas seleccionadas'}
+              </p>
+            </div>
+          )}
+          <DataTable
+            data={pageData}
+            columns={columns}
+            selectable
+            selectedRows={tableSelected}
+            onSelectionChange={setTableSelected}
+            wrapped={false}
+          />
+        </div>
+
+        <Divider />
+
+        {/* Ejemplo 6: Completo */}
+        <div>
+          <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+            Ejemplo 6: Todo Junto (Búsqueda + Paginación + Acciones + Selección + Acciones Globales)
+          </h4>
+          <DataTable
+            data={pageData}
+            columns={columns}
+            searchable
+            searchPlaceholder="Buscar usuarios..."
+            searchValue={tableSearch}
+            onSearch={setTableSearch}
+            pagination={{
+              page: tablePage,
+              perPage: tablePerPage,
+              total: filteredUsers.length,
+              onPageChange: setTablePage,
+              onPerPageChange: setTablePerPage,
+            }}
+            selectable
+            selectedRows={tableSelected}
+            onSelectionChange={setTableSelected}
+            actions={actions}
+            globalActions={[
+              {
+                label: 'Crear Usuario',
+                icon: <PlusIcon className="h-4 w-4" />,
+                variant: 'primary',
+                onClick: () => notify.success('Crear', 'Abriendo formulario de creación...')
+              },
+              {
+                label: 'Eliminar Seleccionados',
+                icon: <TrashIcon className="h-4 w-4" />,
+                variant: 'danger',
+                requiresSelection: true,
+                onClick: (selectedIds?: Set<string | number>) => {
+                  if (confirm(`¿Eliminar ${selectedIds?.size} usuarios?`)) {
+                    notify.success('Eliminado', `${selectedIds?.size} usuarios eliminados`)
+                    setTableSelected(new Set())
+                  }
+                }
+              }
+            ]}
+            onRowClick={(user: User) => notify.info('Click', `Click en ${user.name}`)}
+            emptyMessage="No se encontraron usuarios que coincidan con tu búsqueda"
+            showFooter={true}
+          />
+        </div>
+      </div>
+    )
+  }
 
   // Breadcrumb items
   const breadcrumbItems: BreadcrumbItem[] = [
@@ -409,6 +607,20 @@ export default function ComponentsPage() {
               variant="card"
             />
           </div>
+        </Card>
+      </section>
+
+      <Divider />
+
+      {/* Data Table (demo) */}
+      <section>
+        <SectionHeader
+          title="Data Table"
+          subtitle="Ejemplo de tabla CRUD con selección, ordenamiento y paginación"
+        />
+        <Card>
+          {/* Mock data para demo */}
+          <DataTableDemo />
         </Card>
       </section>
 

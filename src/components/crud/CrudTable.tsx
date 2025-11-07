@@ -22,6 +22,8 @@ interface CrudTableProps<T> {
   selectable?: boolean
   selectedRows?: Set<string | number>
   onSelectionChange?: (selected: Set<string | number>) => void
+  /** Mostrar vista en cards para pantallas pequeñas (mobile) */
+  responsiveCards?: boolean
 }
 
 export function CrudTable<T extends { id: string | number }>({
@@ -33,6 +35,7 @@ export function CrudTable<T extends { id: string | number }>({
   selectable = false,
   selectedRows = new Set(),
   onSelectionChange,
+  responsiveCards = true,
 }: CrudTableProps<T>) {
   const [sorting, setSorting] = useState<SortingState>([])
 
@@ -86,8 +89,10 @@ export function CrudTable<T extends { id: string | number }>({
   }
 
   return (
-    <div className="overflow-x-auto">
-      <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+    <div>
+      {/* Tabla para pantallas medianas en adelante */}
+      <div className={responsiveCards ? 'hidden md:block overflow-x-auto' : 'overflow-x-auto'}>
+        <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
         <thead className="bg-gray-50 dark:bg-gray-800">
           {table.getHeaderGroups().map((headerGroup) => (
             <tr key={headerGroup.id}>
@@ -174,6 +179,61 @@ export function CrudTable<T extends { id: string | number }>({
           ))}
         </tbody>
       </table>
+      </div>
+
+      {/* Vista tipo 'cards' para pantallas pequeñas */}
+      {responsiveCards && (
+        <div className="md:hidden space-y-3">
+          {table.getRowModel().rows.map((row) => {
+            const actionCell = row.getVisibleCells().find((c) => c.column.id === 'actions' || (c.column.columnDef as any).id === 'actions')
+            return (
+              <div
+                key={row.id}
+                className={clsx(
+                  'p-4 bg-white dark:bg-gray-900 rounded-lg shadow-sm',
+                  'hover:shadow-md transition-shadow',
+                  onRowClick && 'cursor-pointer'
+                )}
+                onClick={() => onRowClick?.(row.original)}
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex-1">
+                    {row.getVisibleCells().map((cell) => (
+                      <div key={cell.id} className="mb-2">
+                        <div className="text-xs text-gray-500 dark:text-gray-400 font-medium">
+                          {typeof cell.column.columnDef.header === 'string'
+                            ? (cell.column.columnDef.header as any)
+                            : cell.column.id}
+                        </div>
+                        <div className="text-sm text-gray-900 dark:text-gray-100">
+                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {selectable && (
+                    <div onClick={(e) => e.stopPropagation()}>
+                      <input
+                        type="checkbox"
+                        checked={selectedRows.has(row.original.id)}
+                        onChange={() => handleSelectRow(row.original.id)}
+                        className="rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+                      />
+                    </div>
+                  )}
+                </div>
+
+                {actionCell && (
+                  <div className="mt-3 flex justify-end" onClick={(e) => e.stopPropagation()}>
+                    {flexRender(actionCell.column.columnDef.cell, actionCell.getContext())}
+                  </div>
+                )}
+              </div>
+            )
+          })}
+        </div>
+      )}
     </div>
   )
 }

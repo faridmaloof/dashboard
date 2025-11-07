@@ -12,7 +12,7 @@ export { Select } from './Select'
 export { Modal } from './Modal'
 export { ToastContainer } from './Toast'
 export { Badge } from './Badge'
-export { Loading, Skeleton, TableSkeleton, CardSkeleton } from './Loading'
+export { Loading, Skeleton as LoadingSkeleton, TableSkeleton, CardSkeleton } from './Loading'
 export { Divider, SectionHeader } from './Divider'
 
 // Advanced components
@@ -29,10 +29,40 @@ export { LogoSpinner, LogoSpinnerOverlay } from './LogoSpinner'
 export { PhoneInput } from './PhoneInput'
 export { ProgressBar, MultiProgressBar } from './ProgressBar'
 export { RadioGroup } from './RadioGroup'
+export { DataTable } from './DataTable'
+export type { DataTableProps, DataTablePagination, DataTableActions, DataTableGlobalAction } from './DataTable'
 export { Spinner, ProgressSpinner } from './Spinner'
 export { Switch } from './Switch'
 export { Tabs } from './Tabs'
 export { Tooltip } from './Tooltip'
+
+// New components
+export { StatsCard, StatsCardGroup } from './StatsCard'
+export type { StatsCardProps } from './StatsCard'
+export { EmptyState, NoDataState, NoResultsState, NoPermissionState, ErrorState } from './EmptyState'
+export type { EmptyStateProps } from './EmptyState'
+export { 
+  Skeleton, 
+  SkeletonCard, 
+  SkeletonList, 
+  SkeletonTable, 
+  SkeletonForm, 
+  SkeletonText,
+  SkeletonAvatar,
+  SkeletonGrid 
+} from './Skeleton'
+export { Drawer, DrawerFooter } from './Drawer'
+export type { DrawerProps } from './Drawer'
+export { Stepper, useStepper } from './Stepper'
+export type { Step, StepperProps } from './Stepper'
+export { DatePicker, DateTimePicker, DateRangePicker } from './DatePicker'
+export type { DatePickerProps, DateTimePickerProps, DateRangePickerProps } from './DatePicker'
+export { ModuleSwitcher, useModuleSwitcher } from './ModuleSwitcher'
+export type { Module, ModuleSwitcherProps } from './ModuleSwitcher'
+export { CommandPalette, useCommandPalette } from './CommandPalette'
+export type { Command, CommandPaletteProps } from './CommandPalette'
+export { NotificationPanel } from './NotificationPanel'
+export type { Notification, NotificationPanelProps } from './NotificationPanel'
 
 // Export types
 export type { BreadcrumbItem } from './Breadcrumb'

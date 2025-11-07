@@ -6,10 +6,10 @@ import { useState } from 'react'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
+import { PhoneInput } from '@/components/ui/PhoneInput'
 import { 
   UserCircleIcon, 
   EnvelopeIcon, 
-  PhoneIcon, 
   MapPinIcon,
   CameraIcon,
   KeyIcon,
@@ -36,9 +36,7 @@ export function ProfilePage() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-          Mi Perfil
-        </h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Mi Perfil</h1>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -54,19 +52,13 @@ export function ProfilePage() {
                   <CameraIcon className="h-4 w-4 text-gray-600 dark:text-gray-300" />
                 </button>
               </div>
-              <h2 className="mt-4 text-xl font-bold text-gray-900 dark:text-white">
-                {profile.name}
-              </h2>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                {profile.email}
-              </p>
+              <h2 className="mt-4 text-xl font-bold text-gray-900 dark:text-white">{profile.name}</h2>
+              <p className="text-sm text-gray-500 dark:text-gray-400">{profile.email}</p>
             </div>
           </Card>
 
           <Card>
-            <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">
-              Estadísticas
-            </h3>
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">Estadísticas</h3>
             <div className="space-y-3">
               <div className="flex justify-between items-center">
                 <span className="text-sm text-gray-600 dark:text-gray-400">Sesiones activas</span>
@@ -88,105 +80,61 @@ export function ProfilePage() {
         <div className="lg:col-span-2 space-y-4">
           <Card>
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-base font-semibold text-gray-900 dark:text-white">
-                Información Personal
-              </h3>
-              <Button
-                variant={isEditing ? 'secondary' : 'primary'}
-                size="sm"
-                onClick={() => isEditing ? setIsEditing(false) : setIsEditing(true)}
-              >
+              <h3 className="text-base font-semibold text-gray-900 dark:text-white">Información Personal</h3>
+              <Button variant={isEditing ? 'secondary' : 'primary'} size="sm" onClick={() => setIsEditing((s) => !s)}>
                 {isEditing ? 'Cancelar' : 'Editar'}
               </Button>
             </div>
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Nombre completo
-                </label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nombre completo</label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <UserCircleIcon className="h-5 w-5 text-gray-400" />
                   </div>
-                  <Input
-                    value={profile.name}
-                    onChange={(e) => setProfile({ ...profile, name: e.target.value })}
-                    disabled={!isEditing}
-                    className="pl-10"
-                  />
+                  <Input value={profile.name} onChange={(e) => setProfile({ ...profile, name: e.target.value })} disabled={!isEditing} className="pl-10" />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Email
-                </label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email</label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <EnvelopeIcon className="h-5 w-5 text-gray-400" />
                   </div>
-                  <Input
-                    type="email"
-                    value={profile.email}
-                    onChange={(e) => setProfile({ ...profile, email: e.target.value })}
-                    disabled={!isEditing}
-                    className="pl-10"
-                  />
+                  <Input type="email" value={profile.email} onChange={(e) => setProfile({ ...profile, email: e.target.value })} disabled={!isEditing} className="pl-10" />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Teléfono
-                </label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Teléfono</label>
                 <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <PhoneIcon className="h-5 w-5 text-gray-400" />
-                  </div>
-                  <Input
-                    value={profile.phone}
-                    onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
-                    disabled={!isEditing}
-                    className="pl-10"
-                  />
+                  <PhoneInput value={profile.phone} onChange={(val) => setProfile({ ...profile, phone: val })} placeholder="Número de teléfono" className="w-full" disabled={!isEditing} />
                 </div>
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Ubicación
-                </label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Ubicación</label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <MapPinIcon className="h-5 w-5 text-gray-400" />
                   </div>
-                  <Input
-                    value={profile.location}
-                    onChange={(e) => setProfile({ ...profile, location: e.target.value })}
-                    disabled={!isEditing}
-                    className="pl-10"
-                  />
+                  <Input value={profile.location} onChange={(e) => setProfile({ ...profile, location: e.target.value })} disabled={!isEditing} className="pl-10" />
                 </div>
               </div>
 
               {isEditing && (
                 <div className="flex gap-2 pt-2">
-                  <Button onClick={handleSave} variant="primary">
-                    Guardar cambios
-                  </Button>
-                  <Button onClick={() => setIsEditing(false)} variant="secondary">
-                    Cancelar
-                  </Button>
+                  <Button onClick={handleSave} variant="primary">Guardar cambios</Button>
+                  <Button onClick={() => setIsEditing(false)} variant="secondary">Cancelar</Button>
                 </div>
               )}
             </div>
           </Card>
 
           <Card>
-            <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-4">
-              Seguridad
-            </h3>
+            <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-4">Seguridad</h3>
             <div className="space-y-3">
               <button className="w-full flex items-center justify-between p-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-lg transition-colors text-left">
                 <div className="flex items-center gap-3">
@@ -224,3 +172,4 @@ export function ProfilePage() {
     </div>
   )
 }
+ 

@@ -33,6 +33,8 @@ export function UsersPage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [currentUser, setCurrentUser] = useState<User | null>(null)
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
+  const [deleteTarget, setDeleteTarget] = useState<{ id?: string | number; count?: number } | null>(null)
 
   // Cuando conectes al backend, descomenta esto:
   // const userCrud = useCrud<User>({ endpoint: '/users', queryKey: 'users' })
@@ -93,20 +95,15 @@ export function UsersPage() {
   }
 
   const handleDelete = (_id: string | number) => {
-    if (confirm('¿Estás seguro de eliminar este usuario?')) {
-      notify.success('Usuario eliminado', 'El usuario ha sido eliminado correctamente')
-      // deleteMutation.mutate(id)
-    }
+    // Abrir modal de confirmación para borrado
+    setDeleteTarget({ id: _id })
+    setIsDeleteModalOpen(true)
   }
 
   const handleBulkDelete = () => {
     if (selectedRows.size === 0) return
-    
-    if (confirm(`¿Estás seguro de eliminar ${selectedRows.size} usuarios?`)) {
-      notify.success('Usuarios eliminados', `${selectedRows.size} usuarios eliminados`)
-      setSelectedRows(new Set())
-      // bulkDeleteMutation.mutate(Array.from(selectedRows))
-    }
+    setDeleteTarget({ count: selectedRows.size })
+    setIsDeleteModalOpen(true)
   }
 
   return (
@@ -219,6 +216,41 @@ export function UsersPage() {
             setIsEditModalOpen(false)
           }}>
             Guardar
+          </Button>
+        </div>
+      </Modal>
+
+      {/* Delete Confirmation Modal (single or bulk) */}
+      <Modal
+        isOpen={isDeleteModalOpen}
+        onClose={() => { setIsDeleteModalOpen(false); setDeleteTarget(null) }}
+        title={deleteTarget?.count ? `Eliminar ${deleteTarget.count} usuarios` : 'Eliminar usuario'}
+        size="sm"
+      >
+        <p className="text-gray-600 dark:text-gray-400">
+          {deleteTarget?.count
+            ? `¿Estás seguro de eliminar ${deleteTarget.count} usuarios? Esta acción no se puede deshacer.`
+            : '¿Estás seguro de eliminar este usuario? Esta acción no se puede deshacer.'}
+        </p>
+        <div className="flex justify-end gap-2 mt-6">
+          <Button variant="secondary" onClick={() => { setIsDeleteModalOpen(false); setDeleteTarget(null) }}>
+            Cancelar
+          </Button>
+          <Button
+            variant="danger"
+            onClick={() => {
+              // Mock delete behavior: en producción usar las mutaciones del hook useCrud
+              if (deleteTarget?.count) {
+                notify.success('Usuarios eliminados', `${deleteTarget.count} usuarios eliminados`)
+                setSelectedRows(new Set())
+              } else if (deleteTarget?.id) {
+                notify.success('Usuario eliminado', 'El usuario ha sido eliminado correctamente')
+              }
+              setIsDeleteModalOpen(false)
+              setDeleteTarget(null)
+            }}
+          >
+            Eliminar
           </Button>
         </div>
       </Modal>
