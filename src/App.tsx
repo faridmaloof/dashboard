@@ -22,6 +22,12 @@ const ComponentsPage = lazy(() => import('./pages/components/ComponentsPage'))
 const ProcessesPage = lazy(() => import('./pages/processes/ProcessesPage'))
 const GeneralSettingsPage = lazy(() => import('./pages/settings/GeneralSettingsPage'))
 const NotFoundPage = lazy(() => import('./pages/errors/NotFoundPage'))
+// Design System Pages
+const TokensPage = lazy(() => import('./pages/design-system/TokensPage'))
+const ColorsPage = lazy(() => import('./pages/design-system/ColorsPage'))
+const TypographyPage = lazy(() => import('./pages/design-system/TypographyPage'))
+const ComponentsLibraryPage = lazy(() => import('./pages/design-system/ComponentsLibraryPage'))
+const ChartsLibraryPage = lazy(() => import('./pages/design-system/ChartsLibraryPage'))
 
 // Configurar React Query
 const queryClient = new QueryClient({
@@ -48,8 +54,19 @@ function App() {
                 {/* Protected routes */}
                 <Route path="/" element={<Navigate to="/dashboard" replace />} />
                 <Route path="/dashboard" element={<RequireAuth><MainLayout><DashboardPage /></MainLayout></RequireAuth>} />
+                
+                {/* Design System */}
+                <Route path="/design-system/tokens" element={<RequireAuth><MainLayout><TokensPage /></MainLayout></RequireAuth>} />
+                <Route path="/design-system/colors" element={<RequireAuth><MainLayout><ColorsPage /></MainLayout></RequireAuth>} />
+                <Route path="/design-system/typography" element={<RequireAuth><MainLayout><TypographyPage /></MainLayout></RequireAuth>} />
+                <Route path="/design-system/components" element={<RequireAuth><MainLayout><ComponentsLibraryPage /></MainLayout></RequireAuth>} />
+                <Route path="/design-system/charts" element={<RequireAuth><MainLayout><ChartsLibraryPage /></MainLayout></RequireAuth>} />
+                
+                {/* Examples */}
                 <Route path="/components" element={<RequireAuth><MainLayout><ComponentsPage /></MainLayout></RequireAuth>} />
                 <Route path="/charts" element={<RequireAuth><MainLayout><ChartsPage /></MainLayout></RequireAuth>} />
+                
+                {/* App Pages */}
                 <Route path="/users" element={<RequireAuth><MainLayout><UsersPage /></MainLayout></RequireAuth>} />
                 <Route path="/processes" element={<RequireAuth><MainLayout><ProcessesPage /></MainLayout></RequireAuth>} />
                 <Route path="/reports" element={<RequireAuth><MainLayout><div className="text-center py-12 text-gray-500">Página de Reportes - En construcción</div></MainLayout></RequireAuth>} />

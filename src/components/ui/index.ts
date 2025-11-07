@@ -63,6 +63,12 @@ export { CommandPalette, useCommandPalette } from './CommandPalette'
 export type { Command, CommandPaletteProps } from './CommandPalette'
 export { NotificationPanel } from './NotificationPanel'
 export type { Notification, NotificationPanelProps } from './NotificationPanel'
+export { CodePreview, CodePreviewGroup } from './CodePreview'
+export type { CodePreviewProps, CodePreviewGroupProps } from './CodePreview'
+
+// Charts
+export { ChartLine, ChartBar, ChartPie, ChartArea, ChartRadar, ChartGauge, CHART_COLORS, DEFAULT_COLORS } from './Charts'
+export type { ChartLineProps, ChartBarProps, ChartPieProps, ChartAreaProps, ChartRadarProps, ChartGaugeProps } from './Charts'
 
 // Export types
 export type { BreadcrumbItem } from './Breadcrumb'

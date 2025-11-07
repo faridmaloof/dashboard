@@ -13,6 +13,9 @@ import {
   ShieldExclamationIcon,
   WrenchScrewdriverIcon,
   ServerIcon,
+  SwatchIcon,
+  PaintBrushIcon,
+  CodeBracketIcon,
 } from '@heroicons/react/24/outline'
 
 export interface MenuItemBase {
@@ -36,10 +39,21 @@ export type MenuEntry = MenuItemBase | MenuCategory
 export const MENU_CONFIG: MenuEntry[] = [
   { name: 'Dashboard', href: '/dashboard', icon: ChartPieIcon },
   {
-    name: 'Componentes',
+    name: 'Design System',
+    icon: SwatchIcon,
+    items: [
+      { name: 'Tokens', href: '/design-system/tokens', icon: PaintBrushIcon },
+      { name: 'Colores', href: '/design-system/colors', icon: SwatchIcon },
+      { name: 'Tipografía', href: '/design-system/typography', icon: CodeBracketIcon },
+      { name: 'Componentes', href: '/design-system/components', icon: Squares2X2Icon },
+      { name: 'Charts', href: '/design-system/charts', icon: ChartPieIcon },
+    ],
+  },
+  {
+    name: 'Ejemplos',
     icon: Squares2X2Icon,
     items: [
-      { name: 'UI', href: '/components', icon: Squares2X2Icon },
+      { name: 'UI Components', href: '/components', icon: Squares2X2Icon },
       { name: 'Charts', href: '/charts', icon: ChartPieIcon },
     ],
   },
