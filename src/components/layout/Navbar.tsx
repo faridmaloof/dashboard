@@ -17,18 +17,16 @@ import {
   Cog6ToothIcon,
   UserIcon,
 } from '@heroicons/react/24/outline'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
 import { useSidebarStore } from '@/store/sidebarStore'
 import { useThemeStore } from '@/store/themeStore'
-import { useModuleStore } from '@/store/moduleStore'
 import { Breadcrumb } from '../ui/Breadcrumb'
 import type { BreadcrumbItem } from '../ui/Breadcrumb'
 import clsx from 'clsx'
 import { useState } from 'react'
 import { SearchModal } from './SearchModal'
 import { MagnifyingGlassIcon } from '@heroicons/react/24/outline'
-import { ModuleSwitcher } from '../ui' // ✅ Importar desde index centralizado
 
 // Breadcrumb mapping with routes
 const breadcrumbMap: Record<string, BreadcrumbItem[]> = {
@@ -212,45 +210,11 @@ const notifications = [
 export function Navbar() {
   const { toggle, isMobile, isOpen, sidebarWidth } = useSidebarStore()
   const { theme, toggleTheme } = useThemeStore()
-  const { currentModule, modules, setCurrentModule } = useModuleStore()
   const location = useLocation()
-  const navigate = useNavigate()
   const [isSearchOpen, setIsSearchOpen] = useState(false)
   
   const breadcrumbs = breadcrumbMap[location.pathname] || [{ label: 'Dashboard', href: '/dashboard' }]
   const unreadCount = notifications.filter(n => !n.read).length
-
-  // Manejar cambio de módulo con navegación
-  const handleModuleChange = (moduleId: string) => {
-    setCurrentModule(moduleId)
-    
-    // Navegar al dashboard del módulo
-    const moduleRoutes: Record<string, string> = {
-      dashboard: '/dashboard',
-      crm: '/crm/dashboard',
-      ventas: '/ventas/dashboard',
-      inventario: '/inventario/dashboard',
-      reportes: '/reportes/dashboard',
-    }
-    
-    const route = moduleRoutes[moduleId] || '/dashboard'
-    navigate(route)
-  }
-
-  // Auto-cambiar módulo según la ruta actual
-  useEffect(() => {
-    const path = location.pathname
-    let moduleId = 'dashboard'
-    
-    if (path.startsWith('/crm')) moduleId = 'crm'
-    else if (path.startsWith('/ventas')) moduleId = 'ventas'
-    else if (path.startsWith('/inventario')) moduleId = 'inventario'
-    else if (path.startsWith('/reportes')) moduleId = 'reportes'
-    
-    if (moduleId !== currentModule) {
-      setCurrentModule(moduleId)
-    }
-  }, [location.pathname, currentModule, setCurrentModule])
 
   // Calcular ancho del navbar según estado del sidebar
   const getNavbarWidth = () => {
@@ -308,21 +272,6 @@ export function Navbar() {
           >
             <Bars3Icon className="h-5 w-5" />
           </button>
-
-          {/* Module Switcher - Diseño Profesional */}
-          <div className="hidden lg:flex items-center">
-            <ModuleSwitcher
-              modules={modules}
-              currentModule={currentModule}
-              onModuleChange={handleModuleChange}
-              searchable={true}
-              compact={false}
-              className="min-w-[200px]"
-            />
-          </div>
-
-          {/* Divider */}
-          <div className="hidden lg:block h-8 w-px bg-gray-200 dark:bg-gray-700" />
 
           {/* Breadcrumbs */}
           <div className="hidden sm:block">

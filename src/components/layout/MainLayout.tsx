@@ -32,18 +32,18 @@ export function MainLayout({ children }: MainLayoutProps) {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="h-screen overflow-hidden bg-gray-50 dark:bg-gray-900">
       <Sidebar />
       
       {/* Main Content Area */}
       <div
         style={{ marginLeft: `${getMarginLeft()}px` }}
-        className="transition-all duration-500 ease-out"
+        className="h-full transition-all duration-500 ease-out"
       >
         <Navbar />
         
-        {/* Main content with padding-top for fixed navbar */}
-        <main className="pt-14 p-6 lg:p-8">
+        {/* Main content with scroll ONLY in content area, starts below navbar (h-14 = 56px) */}
+        <main className="h-[calc(100vh-3.5rem)] overflow-y-auto mt-14 px-6 py-6 lg:px-8 lg:py-8">
           {children}
         </main>
       </div>

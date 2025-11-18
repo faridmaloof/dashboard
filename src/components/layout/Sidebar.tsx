@@ -2,17 +2,19 @@
  * Componente Sidebar con menú colapsable, categorías y animaciones mejoradas
  */
 
-import { NavLink } from 'react-router-dom'
+import { NavLink, useNavigate, useLocation } from 'react-router-dom'
 import { useState, useEffect, useRef } from 'react'
 import type { MouseEvent as ReactMouseEvent } from 'react'
 import { XMarkIcon, ChevronRightIcon } from '@heroicons/react/24/outline'
 import clsx from 'clsx'
 import { useSidebarStore } from '@/store/sidebarStore'
+import { useModuleStore } from '@/store/moduleStore'
 import { useConfig } from '@/contexts/ConfigContext'
 import type { MenuEntry, MenuCategory, MenuItemBase } from '@/config/menu.config'
 
 import { useMenu } from '@/hooks/useMenu'
 import { IconRenderer } from '@/components/ui/IconRenderer'
+import { ModuleSwitcher } from '@/components/ui'
 
 function isCategory(item: MenuEntry): item is MenuCategory {
   return !!(item && (item as any).items && Array.isArray((item as any).items))
@@ -202,11 +204,14 @@ function CollapsedCategoryItem({ category }: { category: MenuCategory }) {
 
 export function Sidebar() {
   const { isOpen, isMobile, close, setSidebarWidth } = useSidebarStore()
+  const { currentModule, modules, setCurrentModule } = useModuleStore()
   const { config } = useConfig()
   const [expandedCategory, setExpandedCategory] = useState<string | null>(null)
   const [localWidth, setLocalWidth] = useState(256) // Default 256px (w-64)
   const [isResizing, setIsResizing] = useState(false)
   const { menu } = useMenu()
+  const navigate = useNavigate()
+  const location = useLocation()
 
   const minWidth = 200
   const maxWidth = 400
@@ -214,6 +219,38 @@ export function Sidebar() {
   const handleCategoryToggle = (categoryName: string) => {
     setExpandedCategory(prev => prev === categoryName ? null : categoryName)
   }
+
+  // Manejar cambio de módulo con navegación
+  const handleModuleChange = (moduleId: string) => {
+    setCurrentModule(moduleId)
+    
+    // Navegar al dashboard del módulo
+    const moduleRoutes: Record<string, string> = {
+      dashboard: '/dashboard',
+      crm: '/crm/dashboard',
+      ventas: '/ventas/dashboard',
+      inventario: '/inventario/dashboard',
+      reportes: '/reportes/dashboard',
+    }
+    
+    const route = moduleRoutes[moduleId] || '/dashboard'
+    navigate(route)
+  }
+
+  // Auto-cambiar módulo según la ruta actual
+  useEffect(() => {
+    const path = location.pathname
+    let moduleId = 'dashboard'
+    
+    if (path.startsWith('/crm')) moduleId = 'crm'
+    else if (path.startsWith('/ventas')) moduleId = 'ventas'
+    else if (path.startsWith('/inventario')) moduleId = 'inventario'
+    else if (path.startsWith('/reportes')) moduleId = 'reportes'
+    
+    if (moduleId !== currentModule) {
+      setCurrentModule(moduleId)
+    }
+  }, [location.pathname, currentModule, setCurrentModule])
 
   const handleMouseDown = (e: ReactMouseEvent) => {
     if (!isOpen || isMobile) return
@@ -304,6 +341,20 @@ export function Sidebar() {
               </button>
             )}
           </div>
+
+          {/* Module Switcher - Debajo del Logo */}
+          {isOpen && (
+            <div className="p-2.5 border-b border-gray-200 dark:border-gray-700">
+              <ModuleSwitcher
+                modules={modules}
+                currentModule={currentModule}
+                onModuleChange={handleModuleChange}
+                searchable={false}
+                compact={false}
+                className="w-full"
+              />
+            </div>
+          )}
 
           {/* Navigation with scroll */}
           <nav className="flex-1 overflow-y-auto p-2.5 space-y-1 custom-scrollbar">

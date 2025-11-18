@@ -30,6 +30,9 @@ import clsx from 'clsx'
 import { Button } from './Button'
 import { Input } from './Input'
 import { Textarea } from './Textarea'
+import { Select } from './Select'
+import { DatePicker as DatePickerV2 } from './DateControls'
+import { useLocaleStore, formatDateWithLocale } from '@/store/localeStore'
 
 // ============================================================================
 // TIPOS
@@ -75,6 +78,12 @@ export interface SchedulerConfig {
   // Intervalos de tiempo
   timeInterval?: 15 | 30 | 60 // minutos entre cada slot
 
+  // Personalización de locale (opcionales, si no se proveen se usa localeStore)
+  customMonths?: string[]      // Array de 12 meses, si faltan se completa con locale
+  customMonthsShort?: string[] // Array de 12 meses cortos
+  customDays?: string[]        // Array de 7 días
+  customDaysShort?: string[]   // Array de 7 días cortos
+
   // API
   onFetchAppointments?: (start: Date, end: Date) => Promise<Appointment[]>
   onCreateAppointment?: (appointment: Omit<Appointment, 'id'>) => Promise<Appointment>
@@ -95,32 +104,26 @@ export interface SchedulerProps {
 // UTILIDADES
 // ============================================================================
 
-const MONTHS = [
-  'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-  'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
-]
-
-const DAYS_SHORT = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb']
-const DAYS_FULL = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado']
-
-function formatDate(date: Date, includeTime = false): string {
-  const day = String(date.getDate()).padStart(2, '0')
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const year = date.getFullYear()
-
-  if (!includeTime) {
-    return `${day}/${month}/${year}`
+/**
+ * Obtiene arrays de meses/días con fallback a locale
+ * Si se proveen arrays personalizados y faltan elementos, se completan con locale
+ */
+function getLocaleArrays(config?: SchedulerConfig) {
+  const localeConfig = useLocaleStore.getState().getLocaleConfig()
+  
+  const mergeArray = (custom: string[] | undefined, defaultArray: string[], requiredLength: number): string[] => {
+    if (!custom || custom.length === 0) return defaultArray
+    if (custom.length >= requiredLength) return custom.slice(0, requiredLength)
+    // Si faltan elementos, completar con los del locale
+    return [...custom, ...defaultArray.slice(custom.length, requiredLength)]
   }
 
-  const hours = String(date.getHours()).padStart(2, '0')
-  const minutes = String(date.getMinutes()).padStart(2, '0')
-  return `${day}/${month}/${year} ${hours}:${minutes}`
-}
-
-function formatTime(date: Date): string {
-  const hours = String(date.getHours()).padStart(2, '0')
-  const minutes = String(date.getMinutes()).padStart(2, '0')
-  return `${hours}:${minutes}`
+  return {
+    MONTHS: mergeArray(config?.customMonths, localeConfig.months, 12),
+    MONTHS_SHORT: mergeArray(config?.customMonthsShort, localeConfig.monthsShort, 12),
+    DAYS: mergeArray(config?.customDays, localeConfig.days, 7),
+    DAYS_SHORT: mergeArray(config?.customDaysShort, localeConfig.daysShort, 7),
+  }
 }
 
 function isSameDay(d1: Date, d2: Date): boolean {
@@ -392,7 +395,7 @@ function AppointmentModal({
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-95"
             >
-              <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white dark:bg-gray-800 p-6 text-left align-middle shadow-xl transition-all">
+              <Dialog.Panel className="w-full max-w-2xl transform overflow-visible rounded-2xl bg-white dark:bg-gray-800 p-6 text-left align-middle shadow-xl transition-all">
                 <Dialog.Title as="h3" className="text-lg font-medium leading-6 text-gray-900 dark:text-white flex items-center justify-between">
                   {isEditing ? 'Editar cita' : 'Nueva cita'}
                   <button
@@ -424,79 +427,30 @@ function AppointmentModal({
                     />
                   )}
 
-                  {/* Fecha y hora inicio */}
-                  <div className="grid grid-cols-2 gap-3">
+                  {/* Fecha y hora inicio y fin en el mismo renglón */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        Fecha inicio
-                      </label>
-                      <input
-                        type="date"
-                        value={formData.start ? formData.start.toISOString().split('T')[0] : ''}
-                        onChange={(e) => {
-                          const newStart = new Date(formData.start || new Date())
-                          const [year, month, day] = e.target.value.split('-').map(Number)
-                          newStart.setFullYear(year, month - 1, day)
-                          handleChange('start', newStart)
-                        }}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      <DatePickerV2
+                        label="Fecha y Hora de Inicio"
+                        value={formData.start || null}
+                        onChange={(date) => handleChange('start', date)}
+                        showTime
+                        placeholder="Seleccionar fecha y hora de inicio"
                       />
+                      {errors.start && <p className="text-sm text-red-600 dark:text-red-400 mt-1">{errors.start}</p>}
                     </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        Hora inicio
-                      </label>
-                      <input
-                        type="time"
-                        value={formData.start ? formatTime(formData.start) : ''}
-                        onChange={(e) => {
-                          const newStart = new Date(formData.start || new Date())
-                          const [hours, minutes] = e.target.value.split(':').map(Number)
-                          newStart.setHours(hours, minutes)
-                          handleChange('start', newStart)
-                        }}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                      />
-                    </div>
-                  </div>
-                  {errors.start && <p className="text-sm text-red-600 dark:text-red-400 mt-1">{errors.start}</p>}
 
-                  {/* Fecha y hora fin */}
-                  <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        Fecha fin
-                      </label>
-                      <input
-                        type="date"
-                        value={formData.end ? formData.end.toISOString().split('T')[0] : ''}
-                        onChange={(e) => {
-                          const newEnd = new Date(formData.end || new Date())
-                          const [year, month, day] = e.target.value.split('-').map(Number)
-                          newEnd.setFullYear(year, month - 1, day)
-                          handleChange('end', newEnd)
-                        }}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                      <DatePickerV2
+                        label="Fecha y Hora de Fin"
+                        value={formData.end || null}
+                        onChange={(date) => handleChange('end', date)}
+                        showTime
+                        placeholder="Seleccionar fecha y hora de fin"
                       />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                        Hora fin
-                      </label>
-                      <input
-                        type="time"
-                        value={formData.end ? formatTime(formData.end) : ''}
-                        onChange={(e) => {
-                          const newEnd = new Date(formData.end || new Date())
-                          const [hours, minutes] = e.target.value.split(':').map(Number)
-                          newEnd.setHours(hours, minutes)
-                          handleChange('end', newEnd)
-                        }}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                      />
+                      {errors.end && <p className="text-sm text-red-600 dark:text-red-400 mt-1">{errors.end}</p>}
                     </div>
                   </div>
-                  {errors.end && <p className="text-sm text-red-600 dark:text-red-400 mt-1">{errors.end}</p>}
 
                   {/* Estado */}
                   {config.showStatus !== false && (
@@ -561,25 +515,15 @@ function AppointmentModal({
                         />
                       )}
                       {field.type === 'select' && (
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                            {field.label}
-                          </label>
-                          <select
-                            value={formData[field.name] || ''}
-                            onChange={(e) => handleChange(field.name, e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                            required={field.required}
-                          >
-                            <option value="">Seleccionar...</option>
-                            {field.options?.map((option) => (
-                              <option key={option} value={option}>
-                                {option}
-                              </option>
-                            ))}
-                          </select>
-                          {errors[field.name] && <p className="text-sm text-red-600 dark:text-red-400 mt-1">{errors[field.name]}</p>}
-                        </div>
+                        <Select
+                          label={field.label}
+                          value={formData[field.name] || ''}
+                          onChange={(value) => handleChange(field.name, value)}
+                          options={(field.options || []).map(opt => ({ value: opt, label: opt }))}
+                          placeholder="Seleccionar..."
+                          error={errors[field.name]}
+                          required={field.required}
+                        />
                       )}
                     </div>
                   ))}
@@ -639,7 +583,7 @@ function AppointmentCard({ appointment, onClick, config }: AppointmentCardProps)
     >
       <div className="font-semibold truncate">{appointment.title}</div>
       <div className="text-white/80 text-[10px]">
-        {formatTime(new Date(appointment.start))} - {formatTime(new Date(appointment.end))}
+        {formatDateWithLocale(new Date(appointment.start), undefined, true)} - {formatDateWithLocale(new Date(appointment.end), undefined, true)}
       </div>
       {appointment.status && (
         <div className="absolute top-1 right-1">
@@ -655,10 +599,10 @@ function AppointmentCard({ appointment, onClick, config }: AppointmentCardProps)
         )}
         <div className="text-xs space-y-1">
           <div>
-            <span className="font-medium">Inicio:</span> {formatDate(new Date(appointment.start), true)}
+            <span className="font-medium">Inicio:</span> {formatDateWithLocale(new Date(appointment.start), undefined, true)}
           </div>
           <div>
-            <span className="font-medium">Fin:</span> {formatDate(new Date(appointment.end), true)}
+            <span className="font-medium">Fin:</span> {formatDateWithLocale(new Date(appointment.end), undefined, true)}
           </div>
           {config?.hoverFields?.map((field) => (
             appointment[field] && (
@@ -830,15 +774,16 @@ export function Scheduler({
 
   // Obtener título de la vista actual
   const getViewTitle = () => {
+    const { MONTHS, DAYS } = getLocaleArrays(config)
     const monthName = MONTHS[currentDate.getMonth()]
     const year = currentDate.getFullYear()
 
     switch (view) {
       case 'day':
-        return `${DAYS_FULL[currentDate.getDay()]}, ${currentDate.getDate()} de ${monthName} ${year}`
+        return `${DAYS[currentDate.getDay()]}, ${currentDate.getDate()} de ${monthName} ${year}`
       case 'week':
         const weekDays = getWeekDays(currentDate)
-        return `${formatDate(weekDays[0])} - ${formatDate(weekDays[6])}`
+        return `${formatDateWithLocale(weekDays[0])} - ${formatDateWithLocale(weekDays[6])}`
       case 'month':
         return `${monthName} ${year}`
       case 'bimonth':
@@ -982,6 +927,7 @@ interface ViewProps {
 
 function MonthView({ currentDate, appointments, onAppointmentClick, onDateClick, config }: ViewProps) {
   const days = getMonthDays(currentDate)
+  const { DAYS_SHORT } = getLocaleArrays(config)
 
   const getAppointmentsForDay = (date: Date) => {
     return appointments.filter((apt) => isSameDay(new Date(apt.start), date))
@@ -1048,6 +994,7 @@ function WeekView({ currentDate, appointments, onAppointmentClick, onDateClick, 
   const timeInterval = config?.timeInterval || 60
   const slotsPerHour = 60 / timeInterval
   const totalSlots = 24 * slotsPerHour
+  const { DAYS_SHORT } = getLocaleArrays(config)
 
   const getAppointmentsForDayAndSlot = (date: Date, hour: number, minute: number) => {
     return appointments.filter((apt) => {
@@ -1189,8 +1136,9 @@ interface MiniCalendarProps {
   config?: SchedulerConfig
 }
 
-function MiniCalendar({ date, appointments, onAppointmentClick, onDateClick }: MiniCalendarProps) {
+function MiniCalendar({ date, appointments, onAppointmentClick, onDateClick, config }: MiniCalendarProps) {
   const days = getMonthDays(date)
+  const { MONTHS, DAYS_SHORT } = getLocaleArrays(config)
   const monthName = MONTHS[date.getMonth()]
   const year = date.getFullYear()
 

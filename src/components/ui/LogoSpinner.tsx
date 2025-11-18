@@ -51,7 +51,7 @@ export function LogoSpinner({
   variant = 'spin',
   speed = 'normal',
   size = 'md',
-  invertColors = true,
+  invertColors = false,
   className,
   ...props
 }: LogoSpinnerProps) {
