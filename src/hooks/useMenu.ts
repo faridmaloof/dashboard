@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import { getMenuForModule, type MenuEntry, type MenuCategory, type MenuItemBase } from '@/config/menu.config'
 import { useAuth } from './useAuth'
 import { useModuleStore } from '@/store/moduleStore'
+import { useMenuCache } from './useMenuCache'
 import type { User } from '@/types'
 import { useQuery } from '@tanstack/react-query'
 import { apiService } from '@/services/api.service'
@@ -17,6 +18,7 @@ function canView(user: User | null | undefined, permission?: string) {
 export function useMenu() {
   const { user } = useAuth()
   const { currentModule } = useModuleStore()
+  const { getMenu } = useMenuCache()
 
   // Try to fetch server-provided menu (override) using react-query
   const { data: serverMenu } = useQuery<MenuEntry[]>({
@@ -35,8 +37,14 @@ export function useMenu() {
   })
 
   const menu = useMemo(() => {
-    // Si hay menú del servidor, úsalo; si no, usa el menú del módulo activo
-    const source = (serverMenu && serverMenu.length > 0) ? serverMenu : getMenuForModule(currentModule)
+    /**
+     * Sistema de Cache de Menú:
+     * - El menú se cachea en memoria por módulo
+     * - Al navegar entre páginas del MISMO módulo, el menú se reutiliza (no se reconstruye)
+     * - Solo se recarga cuando cambias de módulo o cuando expira el cache (5 min)
+     * - Esto permite que rutas compartidas (ej: /users) mantengan el menú del módulo actual
+     */
+    const source = (serverMenu && serverMenu.length > 0) ? serverMenu : getMenu(currentModule, getMenuForModule)
     const result: MenuEntry[] = []
 
     for (const entry of source) {

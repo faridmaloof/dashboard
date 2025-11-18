@@ -17,7 +17,6 @@ import {
   Cog6ToothIcon,
   FolderIcon,
   SwatchIcon,
-  Squares2X2Icon,
 } from '@heroicons/react/24/outline'
 import { createElement } from 'react'
 
@@ -94,14 +93,8 @@ const DEFAULT_MODULES: Module[] = [
   {
     id: 'design-system',
     name: 'Design System',
-    description: 'Componentes, tokens y guías',
+    description: 'Componentes, tokens, ejemplos y guías',
     icon: createElement(SwatchIcon, { className: 'h-4 w-4' }),
-  },
-  {
-    id: 'examples',
-    name: 'Ejemplos',
-    description: 'Demos y casos de uso',
-    icon: createElement(Squares2X2Icon, { className: 'h-4 w-4' }),
   },
 ]
 

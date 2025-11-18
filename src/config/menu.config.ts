@@ -75,6 +75,14 @@ export const DASHBOARD_MENU: MenuEntry[] = [
       { name: 'Inventario Bajo', href: '/dashboard/reports/low-stock', icon: ArchiveBoxIcon, badge: 3 },
     ],
   },
+  {
+    name: 'Sistema',
+    icon: Cog6ToothIcon,
+    items: [
+      { name: 'Usuarios', href: '/users', icon: UsersIcon },
+      { name: 'Configuración', href: '/settings/profile', icon: Cog6ToothIcon },
+    ],
+  },
 ]
 
 /**
@@ -83,20 +91,25 @@ export const DASHBOARD_MENU: MenuEntry[] = [
  */
 export const DESIGN_SYSTEM_MENU: MenuEntry[] = [
   { name: 'Introducción', href: '/design-system', icon: HomeIcon },
-  { name: 'Tokens', href: '/design-system/tokens', icon: PaintBrushIcon },
-  { name: 'Colores', href: '/design-system/colors', icon: SwatchIcon },
-  { name: 'Tipografía', href: '/design-system/typography', icon: CodeBracketIcon },
-  { name: 'Componentes', href: '/design-system/components', icon: Squares2X2Icon },
-  { name: 'Charts', href: '/design-system/charts', icon: ChartPieIcon },
-]
-
-/**
- * Menú del módulo EJEMPLOS
- * Demos y casos de uso
- */
-export const EXAMPLES_MENU: MenuEntry[] = [
-  { name: 'UI Components', href: '/components', icon: Squares2X2Icon },
-  { name: 'Charts', href: '/charts', icon: ChartPieIcon },
+  {
+    name: 'Fundamentos',
+    icon: SwatchIcon,
+    items: [
+      { name: 'Tokens', href: '/design-system/tokens', icon: PaintBrushIcon },
+      { name: 'Colores', href: '/design-system/colors', icon: SwatchIcon },
+      { name: 'Tipografía', href: '/design-system/typography', icon: CodeBracketIcon },
+    ],
+  },
+  {
+    name: 'Componentes',
+    icon: Squares2X2Icon,
+    items: [
+      { name: 'Biblioteca', href: '/design-system/components', icon: Squares2X2Icon },
+      { name: 'Charts', href: '/design-system/charts', icon: ChartPieIcon },
+      { name: 'Ejemplos UI', href: '/components', icon: Squares2X2Icon },
+      { name: 'Ejemplos Charts', href: '/charts', icon: ChartPieIcon },
+    ],
+  },
 ]
 
 /**
@@ -133,6 +146,14 @@ export const CRM_MENU: MenuEntry[] = [
     ],
   },
   { name: 'Reportes CRM', href: '/crm/reportes', icon: DocumentChartBarIcon },
+  {
+    name: 'Gestión',
+    icon: Cog6ToothIcon,
+    items: [
+      { name: 'Usuarios', href: '/users', icon: UsersIcon },
+      { name: 'Configuración', href: '/settings/profile', icon: Cog6ToothIcon },
+    ],
+  },
 ]
 
 /**
@@ -168,6 +189,14 @@ export const VENTAS_MENU: MenuEntry[] = [
     ],
   },
   { name: 'Reportes Ventas', href: '/ventas/reportes', icon: DocumentChartBarIcon },
+  {
+    name: 'Gestión',
+    icon: Cog6ToothIcon,
+    items: [
+      { name: 'Usuarios', href: '/users', icon: UsersIcon },
+      { name: 'Procesos', href: '/processes', icon: CommandLineIcon },
+    ],
+  },
 ]
 
 /**
@@ -203,6 +232,14 @@ export const INVENTARIO_MENU: MenuEntry[] = [
     ],
   },
   { name: 'Reportes Inventario', href: '/inventario/reports', icon: DocumentChartBarIcon },
+  {
+    name: 'Gestión',
+    icon: Cog6ToothIcon,
+    items: [
+      { name: 'Usuarios', href: '/users', icon: UsersIcon },
+      { name: 'Configuración', href: '/settings/general', icon: Cog6ToothIcon },
+    ],
+  },
 ]
 
 /**
@@ -246,7 +283,7 @@ export const REPORTES_MENU: MenuEntry[] = [
  * Usuarios, roles y administración
  */
 export const GESTION_MENU: MenuEntry[] = [
-  { name: 'Dashboard Gestión', href: '/gestion/dashboard', icon: FolderIcon },
+  { name: 'Dashboard Gestión', href: '/users', icon: FolderIcon },
   { name: 'Usuarios', href: '/users', icon: UsersIcon, permission: 'users.view' },
   { name: 'Procesos', href: '/processes', icon: CommandLineIcon, permission: 'processes.view' },
   {
@@ -264,8 +301,7 @@ export const GESTION_MENU: MenuEntry[] = [
  * Ajustes del sistema y perfil
  */
 export const CONFIGURACION_MENU: MenuEntry[] = [
-  { name: 'Dashboard Config', href: '/settings/dashboard', icon: Cog6ToothIcon },
-  { name: 'Perfil', href: '/settings/profile', icon: UserCircleIcon },
+  { name: 'Mi Perfil', href: '/settings/profile', icon: UserCircleIcon },
   { name: 'General', href: '/settings/general', icon: WrenchScrewdriverIcon, permission: 'settings.manage' },
   { name: 'Sistema', href: '/settings/system', icon: ServerIcon, permission: 'system.manage' },
 ]
@@ -283,7 +319,6 @@ export const MODULE_MENU_MAP: Record<string, MenuEntry[]> = {
   gestion: GESTION_MENU,
   configuracion: CONFIGURACION_MENU,
   'design-system': DESIGN_SYSTEM_MENU,
-  examples: EXAMPLES_MENU,
 }
 
 /**
