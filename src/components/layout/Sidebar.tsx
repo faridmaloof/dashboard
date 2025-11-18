@@ -2,7 +2,7 @@
  * Componente Sidebar con menú colapsable, categorías y animaciones mejoradas
  */
 
-import { NavLink, useNavigate, useLocation } from 'react-router-dom'
+import { NavLink, useNavigate } from 'react-router-dom'
 import { useState, useEffect, useRef } from 'react'
 import type { MouseEvent as ReactMouseEvent } from 'react'
 import { XMarkIcon, ChevronRightIcon } from '@heroicons/react/24/outline'
@@ -211,7 +211,6 @@ export function Sidebar() {
   const [isResizing, setIsResizing] = useState(false)
   const { menu } = useMenu()
   const navigate = useNavigate()
-  const location = useLocation()
 
   const minWidth = 200
   const maxWidth = 400
@@ -240,24 +239,22 @@ export function Sidebar() {
     navigate(route)
   }
 
-  // Auto-cambiar módulo según la ruta actual
-  useEffect(() => {
-    const path = location.pathname
-    let moduleId = 'dashboard'
-    
-    // Detectar módulo basado en la URL
-    if (path.startsWith('/crm')) moduleId = 'crm'
-    else if (path.startsWith('/ventas')) moduleId = 'ventas'
-    else if (path.startsWith('/inventario')) moduleId = 'inventario'
-    else if (path.startsWith('/reportes')) moduleId = 'reportes'
-    else if (path.startsWith('/users') || path.startsWith('/processes') || path.startsWith('/gestion')) moduleId = 'gestion'
-    else if (path.startsWith('/settings') || path.startsWith('/configuracion')) moduleId = 'configuracion'
-    else if (path.startsWith('/design-system') || path.startsWith('/components') || path.startsWith('/charts')) moduleId = 'design-system'
-    
-    if (moduleId !== currentModule) {
-      setCurrentModule(moduleId)
-    }
-  }, [location.pathname, currentModule, setCurrentModule])
+  /**
+   * NOTA IMPORTANTE: NO auto-detectar módulo basándose en la URL
+   * 
+   * El módulo activo se mantiene estable y solo cambia cuando el usuario
+   * hace clic explícitamente en el ModuleSwitcher.
+   * 
+   * Esto permite que rutas compartidas como /users, /settings/profile, etc.
+   * puedan ser accesibles desde múltiples módulos sin cambiar el contexto del menú.
+   * 
+   * Ejemplo:
+   * - Usuario está en CRM
+   * - Hace clic en "Gestión > Usuarios" (va a /users)
+   * - El módulo sigue siendo CRM
+   * - El menú muestra las opciones de CRM
+   * - Solo el contenido cambia (con LogoSpinner durante carga)
+   */
 
   const handleMouseDown = (e: ReactMouseEvent) => {
     if (!isOpen || isMobile) return

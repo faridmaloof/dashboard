@@ -3,19 +3,19 @@
  */
 
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
-import { lazy, Suspense } from 'react'
+import { lazy } from 'react'
 import RequireAuth from '@/components/layout/RequireAuth'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ConfigProvider } from '@/contexts/ConfigContext'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
 import { MainLayout } from './components/layout/MainLayout'
+import { ContentSuspense } from './components/layout/ContentSuspense'
 import { ToastContainer } from './components/ui/Toast'
 import { LoginPage } from './pages/auth/LoginPage'
 import { ForgotPasswordPage } from './pages/auth/ForgotPasswordPage'
 import { DashboardPage } from './pages/dashboard/DashboardPage'
 import { UsersPage } from './pages/users/UsersPage'
 import { ProfilePage } from './pages/settings/ProfilePage'
-import { Loading } from './components/ui/Loading'
 
 // Lazy load de páginas pesadas
 const ChartsPage = lazy(() => import('./pages/charts/ChartsPage'))
@@ -58,13 +58,26 @@ const queryClient = new QueryClient({
   },
 })
 
+/**
+ * Helper para crear rutas protegidas con Suspense boundary
+ * Esto permite mostrar el logo spinner solo en el contenido mientras carga
+ */
+const createProtectedRoute = (element: React.ReactNode) => (
+  <RequireAuth>
+    <MainLayout>
+      <ContentSuspense>
+        {element}
+      </ContentSuspense>
+    </MainLayout>
+  </RequireAuth>
+)
+
 function App() {
   return (
     <ErrorBoundary>
       <ConfigProvider>
         <QueryClientProvider client={queryClient}>
           <BrowserRouter>
-            <Suspense fallback={<Loading />}>
               <Routes>
                 {/* Public routes */}
                 <Route path="/login" element={<LoginPage />} />
@@ -72,53 +85,52 @@ function App() {
                 
                 {/* Protected routes */}
                 <Route path="/" element={<Navigate to="/dashboard" replace />} />
-                <Route path="/dashboard" element={<RequireAuth><MainLayout><DashboardPage /></MainLayout></RequireAuth>} />
+                <Route path="/dashboard" element={createProtectedRoute(<DashboardPage />)} />
                 
                 {/* Design System */}
-                <Route path="/design-system/tokens" element={<RequireAuth><MainLayout><TokensPage /></MainLayout></RequireAuth>} />
-                <Route path="/design-system/colors" element={<RequireAuth><MainLayout><ColorsPage /></MainLayout></RequireAuth>} />
-                <Route path="/design-system/typography" element={<RequireAuth><MainLayout><TypographyPage /></MainLayout></RequireAuth>} />
-                <Route path="/design-system/components" element={<RequireAuth><MainLayout><ComponentsLibraryPage /></MainLayout></RequireAuth>} />
-                <Route path="/design-system/charts" element={<RequireAuth><MainLayout><ChartsLibraryPage /></MainLayout></RequireAuth>} />
+                <Route path="/design-system/tokens" element={createProtectedRoute(<TokensPage />)} />
+                <Route path="/design-system/colors" element={createProtectedRoute(<ColorsPage />)} />
+                <Route path="/design-system/typography" element={createProtectedRoute(<TypographyPage />)} />
+                <Route path="/design-system/components" element={createProtectedRoute(<ComponentsLibraryPage />)} />
+                <Route path="/design-system/charts" element={createProtectedRoute(<ChartsLibraryPage />)} />
                 
                 {/* Examples */}
-                <Route path="/components" element={<RequireAuth><MainLayout><ComponentsPage /></MainLayout></RequireAuth>} />
-                <Route path="/charts" element={<RequireAuth><MainLayout><ChartsPage /></MainLayout></RequireAuth>} />
+                <Route path="/components" element={createProtectedRoute(<ComponentsPage />)} />
+                <Route path="/charts" element={createProtectedRoute(<ChartsPage />)} />
                 
                 {/* CRM Module */}
-                <Route path="/crm/dashboard" element={<RequireAuth><MainLayout><CrmDashboardPage /></MainLayout></RequireAuth>} />
-                <Route path="/crm/clientes" element={<RequireAuth><MainLayout><ClientsPage /></MainLayout></RequireAuth>} />
-                <Route path="/crm/leads" element={<RequireAuth><MainLayout><LeadsPage /></MainLayout></RequireAuth>} />
-                <Route path="/crm/*" element={<RequireAuth><MainLayout><div className="text-center py-12 text-gray-500">Módulo CRM - Sección en construcción</div></MainLayout></RequireAuth>} />
+                <Route path="/crm/dashboard" element={createProtectedRoute(<CrmDashboardPage />)} />
+                <Route path="/crm/clientes" element={createProtectedRoute(<ClientsPage />)} />
+                <Route path="/crm/leads" element={createProtectedRoute(<LeadsPage />)} />
+                <Route path="/crm/*" element={createProtectedRoute(<div className="text-center py-12 text-gray-500">Módulo CRM - Sección en construcción</div>)} />
                 
                 {/* Ventas Module */}
-                <Route path="/ventas/dashboard" element={<RequireAuth><MainLayout><VentasDashboardPage /></MainLayout></RequireAuth>} />
-                <Route path="/ventas/ordenes" element={<RequireAuth><MainLayout><OrdersPage /></MainLayout></RequireAuth>} />
-                <Route path="/ventas/*" element={<RequireAuth><MainLayout><div className="text-center py-12 text-gray-500">Módulo Ventas - Sección en construcción</div></MainLayout></RequireAuth>} />
+                <Route path="/ventas/dashboard" element={createProtectedRoute(<VentasDashboardPage />)} />
+                <Route path="/ventas/ordenes" element={createProtectedRoute(<OrdersPage />)} />
+                <Route path="/ventas/*" element={createProtectedRoute(<div className="text-center py-12 text-gray-500">Módulo Ventas - Sección en construcción</div>)} />
                 
                 {/* Inventario Module */}
-                <Route path="/inventario/dashboard" element={<RequireAuth><MainLayout><InventarioDashboardPage /></MainLayout></RequireAuth>} />
-                <Route path="/inventario/productos" element={<RequireAuth><MainLayout><ProductsPage /></MainLayout></RequireAuth>} />
-                <Route path="/inventario/*" element={<RequireAuth><MainLayout><div className="text-center py-12 text-gray-500">Módulo Inventario - Sección en construcción</div></MainLayout></RequireAuth>} />
+                <Route path="/inventario/dashboard" element={createProtectedRoute(<InventarioDashboardPage />)} />
+                <Route path="/inventario/productos" element={createProtectedRoute(<ProductsPage />)} />
+                <Route path="/inventario/*" element={createProtectedRoute(<div className="text-center py-12 text-gray-500">Módulo Inventario - Sección en construcción</div>)} />
                 
                 {/* Reportes Module */}
-                <Route path="/reportes/dashboard" element={<RequireAuth><MainLayout><ReportesDashboardPage /></MainLayout></RequireAuth>} />
-                <Route path="/reportes/*" element={<RequireAuth><MainLayout><div className="text-center py-12 text-gray-500">Módulo Reportes - Sección en construcción</div></MainLayout></RequireAuth>} />
+                <Route path="/reportes/dashboard" element={createProtectedRoute(<ReportesDashboardPage />)} />
+                <Route path="/reportes/*" element={createProtectedRoute(<div className="text-center py-12 text-gray-500">Módulo Reportes - Sección en construcción</div>)} />
                 
-                {/* App Pages */}
-                <Route path="/users" element={<RequireAuth><MainLayout><UsersPage /></MainLayout></RequireAuth>} />
-                <Route path="/processes" element={<RequireAuth><MainLayout><ProcessesPage /></MainLayout></RequireAuth>} />
-                <Route path="/reports" element={<RequireAuth><MainLayout><div className="text-center py-12 text-gray-500">Página de Reportes - En construcción</div></MainLayout></RequireAuth>} />
-                <Route path="/settings/profile" element={<RequireAuth><MainLayout><ProfilePage /></MainLayout></RequireAuth>} />
-                <Route path="/settings/general" element={<RequireAuth><MainLayout><GeneralSettingsPage /></MainLayout></RequireAuth>} />
-                <Route path="/settings/system" element={<RequireAuth><MainLayout><div className="text-center py-12 text-gray-500">Configuración del Sistema - En construcción</div></MainLayout></RequireAuth>} />
-                <Route path="/security/roles" element={<RequireAuth><MainLayout><div className="text-center py-12 text-gray-500">Roles y Permisos - En construcción</div></MainLayout></RequireAuth>} />
-                <Route path="/security/audit" element={<RequireAuth><MainLayout><div className="text-center py-12 text-gray-500">Auditoría - En construcción</div></MainLayout></RequireAuth>} />
+                {/* Shared App Pages - Accesibles desde múltiples módulos */}
+                <Route path="/users" element={createProtectedRoute(<UsersPage />)} />
+                <Route path="/processes" element={createProtectedRoute(<ProcessesPage />)} />
+                <Route path="/reports" element={createProtectedRoute(<div className="text-center py-12 text-gray-500">Página de Reportes - En construcción</div>)} />
+                <Route path="/settings/profile" element={createProtectedRoute(<ProfilePage />)} />
+                <Route path="/settings/general" element={createProtectedRoute(<GeneralSettingsPage />)} />
+                <Route path="/settings/system" element={createProtectedRoute(<div className="text-center py-12 text-gray-500">Configuración del Sistema - En construcción</div>)} />
+                <Route path="/security/roles" element={createProtectedRoute(<div className="text-center py-12 text-gray-500">Roles y Permisos - En construcción</div>)} />
+                <Route path="/security/audit" element={createProtectedRoute(<div className="text-center py-12 text-gray-500">Auditoría - En construcción</div>)} />
                 
                 {/* 404 - Debe ser la última ruta */}
                 <Route path="*" element={<NotFoundPage />} />
               </Routes>
-            </Suspense>
             <ToastContainer />
           </BrowserRouter>
         </QueryClientProvider>
