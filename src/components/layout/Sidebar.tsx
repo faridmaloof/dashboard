@@ -231,6 +231,10 @@ export function Sidebar() {
       ventas: '/ventas/dashboard',
       inventario: '/inventario/dashboard',
       reportes: '/reportes/dashboard',
+      gestion: '/users',
+      configuracion: '/settings/profile',
+      'design-system': '/design-system/tokens',
+      examples: '/components',
     }
     
     const route = moduleRoutes[moduleId] || '/dashboard'
@@ -242,10 +246,15 @@ export function Sidebar() {
     const path = location.pathname
     let moduleId = 'dashboard'
     
+    // Detectar módulo basado en la URL
     if (path.startsWith('/crm')) moduleId = 'crm'
     else if (path.startsWith('/ventas')) moduleId = 'ventas'
     else if (path.startsWith('/inventario')) moduleId = 'inventario'
     else if (path.startsWith('/reportes')) moduleId = 'reportes'
+    else if (path.startsWith('/users') || path.startsWith('/processes') || path.startsWith('/gestion')) moduleId = 'gestion'
+    else if (path.startsWith('/settings') || path.startsWith('/configuracion')) moduleId = 'configuracion'
+    else if (path.startsWith('/design-system')) moduleId = 'design-system'
+    else if (path.startsWith('/components') || path.startsWith('/charts') || path.startsWith('/examples')) moduleId = 'examples'
     
     if (moduleId !== currentModule) {
       setCurrentModule(moduleId)

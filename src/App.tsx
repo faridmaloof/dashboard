@@ -33,12 +33,16 @@ const ChartsLibraryPage = lazy(() => import('./pages/design-system/ChartsLibrary
 
 // Module Pages - CRM
 const CrmDashboardPage = lazy(() => import('./pages/crm/CrmDashboardPage'))
+const ClientsPage = lazy(() => import('./pages/crm/ClientsPage'))
+const LeadsPage = lazy(() => import('./pages/crm/LeadsPage'))
 
 // Module Pages - Ventas
 const VentasDashboardPage = lazy(() => import('./pages/ventas/VentasDashboardPage'))
+const OrdersPage = lazy(() => import('./pages/ventas/OrdersPage'))
 
 // Module Pages - Inventario
 const InventarioDashboardPage = lazy(() => import('./pages/inventario/InventarioDashboardPage'))
+const ProductsPage = lazy(() => import('./pages/inventario/ProductsPage'))
 
 // Module Pages - Reportes
 const ReportesDashboardPage = lazy(() => import('./pages/reportes/ReportesDashboardPage'))
@@ -83,14 +87,18 @@ function App() {
                 
                 {/* CRM Module */}
                 <Route path="/crm/dashboard" element={<RequireAuth><MainLayout><CrmDashboardPage /></MainLayout></RequireAuth>} />
+                <Route path="/crm/clientes" element={<RequireAuth><MainLayout><ClientsPage /></MainLayout></RequireAuth>} />
+                <Route path="/crm/leads" element={<RequireAuth><MainLayout><LeadsPage /></MainLayout></RequireAuth>} />
                 <Route path="/crm/*" element={<RequireAuth><MainLayout><div className="text-center py-12 text-gray-500">Módulo CRM - Sección en construcción</div></MainLayout></RequireAuth>} />
                 
                 {/* Ventas Module */}
                 <Route path="/ventas/dashboard" element={<RequireAuth><MainLayout><VentasDashboardPage /></MainLayout></RequireAuth>} />
+                <Route path="/ventas/ordenes" element={<RequireAuth><MainLayout><OrdersPage /></MainLayout></RequireAuth>} />
                 <Route path="/ventas/*" element={<RequireAuth><MainLayout><div className="text-center py-12 text-gray-500">Módulo Ventas - Sección en construcción</div></MainLayout></RequireAuth>} />
                 
                 {/* Inventario Module */}
                 <Route path="/inventario/dashboard" element={<RequireAuth><MainLayout><InventarioDashboardPage /></MainLayout></RequireAuth>} />
+                <Route path="/inventario/productos" element={<RequireAuth><MainLayout><ProductsPage /></MainLayout></RequireAuth>} />
                 <Route path="/inventario/*" element={<RequireAuth><MainLayout><div className="text-center py-12 text-gray-500">Módulo Inventario - Sección en construcción</div></MainLayout></RequireAuth>} />
                 
                 {/* Reportes Module */}

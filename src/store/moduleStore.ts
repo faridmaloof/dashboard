@@ -14,6 +14,10 @@ import {
   ShoppingCartIcon,
   CubeIcon,
   ChartBarIcon,
+  Cog6ToothIcon,
+  FolderIcon,
+  SwatchIcon,
+  Squares2X2Icon,
 } from '@heroicons/react/24/outline'
 import { createElement } from 'react'
 
@@ -32,18 +36,21 @@ interface ModuleStore {
   getCurrentModule: () => Module | undefined
 }
 
-// Módulos por defecto del sistema
+// Módulos por defecto del sistema - Organizados por categoría
 const DEFAULT_MODULES: Module[] = [
+  // Módulo Principal
   {
     id: 'dashboard',
     name: 'Dashboard',
-    description: 'Panel principal del sistema',
+    description: 'Panel principal y métricas generales',
     icon: createElement(HomeIcon, { className: 'h-4 w-4' }),
   },
+  
+  // Módulos de Negocio
   {
     id: 'crm',
     name: 'CRM',
-    description: 'Gestión de clientes y relaciones',
+    description: 'Gestión de clientes, leads y oportunidades',
     icon: createElement(UserGroupIcon, { className: 'h-4 w-4' }),
     badge: '12',
     badgeVariant: 'primary',
@@ -51,20 +58,50 @@ const DEFAULT_MODULES: Module[] = [
   {
     id: 'ventas',
     name: 'Ventas',
-    description: 'Módulo de ventas y facturación',
+    description: 'Pedidos, cotizaciones y facturación',
     icon: createElement(ShoppingCartIcon, { className: 'h-4 w-4' }),
+    badge: '3',
+    badgeVariant: 'success',
   },
   {
     id: 'inventario',
     name: 'Inventario',
-    description: 'Control de stock y productos',
+    description: 'Control de stock, productos y almacenes',
     icon: createElement(CubeIcon, { className: 'h-4 w-4' }),
   },
   {
     id: 'reportes',
     name: 'Reportes',
-    description: 'Analíticas y reportes del sistema',
+    description: 'Analíticas, KPIs y reportes personalizados',
     icon: createElement(ChartBarIcon, { className: 'h-4 w-4' }),
+  },
+  
+  // Módulos de Administración
+  {
+    id: 'gestion',
+    name: 'Gestión',
+    description: 'Usuarios, roles y administración',
+    icon: createElement(FolderIcon, { className: 'h-4 w-4' }),
+  },
+  {
+    id: 'configuracion',
+    name: 'Configuración',
+    description: 'Ajustes del sistema y perfil',
+    icon: createElement(Cog6ToothIcon, { className: 'h-4 w-4' }),
+  },
+  
+  // Módulos de Desarrollo
+  {
+    id: 'design-system',
+    name: 'Design System',
+    description: 'Componentes, tokens y guías',
+    icon: createElement(SwatchIcon, { className: 'h-4 w-4' }),
+  },
+  {
+    id: 'examples',
+    name: 'Ejemplos',
+    description: 'Demos y casos de uso',
+    icon: createElement(Squares2X2Icon, { className: 'h-4 w-4' }),
   },
 ]
 

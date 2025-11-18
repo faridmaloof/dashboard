@@ -75,25 +75,28 @@ export const DASHBOARD_MENU: MenuEntry[] = [
       { name: 'Inventario Bajo', href: '/dashboard/reports/low-stock', icon: ArchiveBoxIcon, badge: 3 },
     ],
   },
-  {
-    name: 'Design System',
-    icon: SwatchIcon,
-    items: [
-      { name: 'Tokens', href: '/design-system/tokens', icon: PaintBrushIcon },
-      { name: 'Colores', href: '/design-system/colors', icon: SwatchIcon },
-      { name: 'Tipografía', href: '/design-system/typography', icon: CodeBracketIcon },
-      { name: 'Componentes', href: '/design-system/components', icon: Squares2X2Icon },
-      { name: 'Charts', href: '/design-system/charts', icon: ChartPieIcon },
-    ],
-  },
-  {
-    name: 'Ejemplos',
-    icon: Squares2X2Icon,
-    items: [
-      { name: 'UI Components', href: '/components', icon: Squares2X2Icon },
-      { name: 'Charts', href: '/charts', icon: ChartPieIcon },
-    ],
-  },
+]
+
+/**
+ * Menú del módulo DESIGN SYSTEM
+ * Tokens, componentes y guías de diseño
+ */
+export const DESIGN_SYSTEM_MENU: MenuEntry[] = [
+  { name: 'Introducción', href: '/design-system', icon: HomeIcon },
+  { name: 'Tokens', href: '/design-system/tokens', icon: PaintBrushIcon },
+  { name: 'Colores', href: '/design-system/colors', icon: SwatchIcon },
+  { name: 'Tipografía', href: '/design-system/typography', icon: CodeBracketIcon },
+  { name: 'Componentes', href: '/design-system/components', icon: Squares2X2Icon },
+  { name: 'Charts', href: '/design-system/charts', icon: ChartPieIcon },
+]
+
+/**
+ * Menú del módulo EJEMPLOS
+ * Demos y casos de uso
+ */
+export const EXAMPLES_MENU: MenuEntry[] = [
+  { name: 'UI Components', href: '/components', icon: Squares2X2Icon },
+  { name: 'Charts', href: '/charts', icon: ChartPieIcon },
 ]
 
 /**
@@ -106,30 +109,30 @@ export const CRM_MENU: MenuEntry[] = [
     name: 'Clientes',
     icon: UserGroupIcon,
     items: [
-      { name: 'Todos los Clientes', href: '/crm/clients', icon: UsersIcon },
-      { name: 'Clientes Potenciales', href: '/crm/leads', icon: UserCircleIcon, badge: 12 },
-      { name: 'Segmentos', href: '/crm/segments', icon: FunnelIcon },
+      { name: 'Todos los Clientes', href: '/crm/clientes', icon: UsersIcon },
+      { name: 'Leads', href: '/crm/leads', icon: UserCircleIcon, badge: 12 },
+      { name: 'Segmentos', href: '/crm/segmentos', icon: FunnelIcon },
     ],
   },
   {
     name: 'Interacciones',
     icon: PhoneIcon,
     items: [
-      { name: 'Llamadas', href: '/crm/calls', icon: PhoneIcon },
-      { name: 'Correos', href: '/crm/emails', icon: EnvelopeIcon, badge: 8 },
-      { name: 'Reuniones', href: '/crm/meetings', icon: CalendarIcon },
+      { name: 'Llamadas', href: '/crm/llamadas', icon: PhoneIcon },
+      { name: 'Correos', href: '/crm/correos', icon: EnvelopeIcon, badge: 8 },
+      { name: 'Reuniones', href: '/crm/reuniones', icon: CalendarIcon },
     ],
   },
   {
     name: 'Ventas',
     icon: BriefcaseIcon,
     items: [
-      { name: 'Oportunidades', href: '/crm/opportunities', icon: ChartBarIcon },
-      { name: 'Cotizaciones', href: '/crm/quotes', icon: DocumentTextIcon },
+      { name: 'Oportunidades', href: '/crm/oportunidades', icon: ChartBarIcon },
+      { name: 'Cotizaciones', href: '/crm/cotizaciones', icon: DocumentTextIcon },
       { name: 'Pipeline', href: '/crm/pipeline', icon: FunnelIcon },
     ],
   },
-  { name: 'Reportes CRM', href: '/crm/reports', icon: DocumentChartBarIcon },
+  { name: 'Reportes CRM', href: '/crm/reportes', icon: DocumentChartBarIcon },
 ]
 
 /**
@@ -142,29 +145,29 @@ export const VENTAS_MENU: MenuEntry[] = [
     name: 'Órdenes',
     icon: ShoppingCartIcon,
     items: [
-      { name: 'Nueva Orden', href: '/ventas/orders/new', icon: ShoppingCartIcon },
-      { name: 'Órdenes Activas', href: '/ventas/orders/active', icon: ClipboardDocumentListIcon, badge: 7 },
-      { name: 'Historial', href: '/ventas/orders/history', icon: ArchiveBoxIcon },
+      { name: 'Todas las Órdenes', href: '/ventas/ordenes', icon: ShoppingCartIcon },
+      { name: 'Nueva Orden', href: '/ventas/ordenes/nueva', icon: ClipboardDocumentListIcon },
+      { name: 'Historial', href: '/ventas/ordenes/historial', icon: ArchiveBoxIcon },
     ],
   },
   {
     name: 'Facturación',
     icon: ReceiptPercentIcon,
     items: [
-      { name: 'Facturas', href: '/ventas/invoices', icon: DocumentTextIcon },
-      { name: 'Pagos', href: '/ventas/payments', icon: BanknotesIcon },
-      { name: 'Pendientes', href: '/ventas/pending', icon: CurrencyDollarIcon, badge: 5 },
+      { name: 'Facturas', href: '/ventas/facturas', icon: DocumentTextIcon },
+      { name: 'Pagos', href: '/ventas/pagos', icon: BanknotesIcon },
+      { name: 'Pendientes', href: '/ventas/pendientes', icon: CurrencyDollarIcon, badge: 5 },
     ],
   },
   {
     name: 'Clientes',
     icon: UsersIcon,
     items: [
-      { name: 'Lista de Clientes', href: '/ventas/customers', icon: UserGroupIcon },
-      { name: 'Historial de Compras', href: '/ventas/customer-history', icon: ChartBarIcon },
+      { name: 'Lista de Clientes', href: '/ventas/clientes', icon: UserGroupIcon },
+      { name: 'Historial de Compras', href: '/ventas/clientes/historial', icon: ChartBarIcon },
     ],
   },
-  { name: 'Reportes Ventas', href: '/ventas/reports', icon: DocumentChartBarIcon },
+  { name: 'Reportes Ventas', href: '/ventas/reportes', icon: DocumentChartBarIcon },
 ]
 
 /**
@@ -177,26 +180,26 @@ export const INVENTARIO_MENU: MenuEntry[] = [
     name: 'Productos',
     icon: CubeIcon,
     items: [
-      { name: 'Todos los Productos', href: '/inventario/products', icon: ArchiveBoxIcon },
-      { name: 'Categorías', href: '/inventario/categories', icon: TagIcon },
-      { name: 'Stock Bajo', href: '/inventario/low-stock', icon: ShieldExclamationIcon, badge: 3 },
+      { name: 'Todos los Productos', href: '/inventario/productos', icon: ArchiveBoxIcon },
+      { name: 'Categorías', href: '/inventario/categorias', icon: TagIcon },
+      { name: 'Stock Bajo', href: '/inventario/stock-bajo', icon: ShieldExclamationIcon, badge: 3 },
     ],
   },
   {
     name: 'Movimientos',
     icon: TruckIcon,
     items: [
-      { name: 'Entradas', href: '/inventario/inbound', icon: TruckIcon },
-      { name: 'Salidas', href: '/inventario/outbound', icon: ShoppingCartIcon },
-      { name: 'Transferencias', href: '/inventario/transfers', icon: CommandLineIcon },
+      { name: 'Entradas', href: '/inventario/entradas', icon: TruckIcon },
+      { name: 'Salidas', href: '/inventario/salidas', icon: ShoppingCartIcon },
+      { name: 'Transferencias', href: '/inventario/transferencias', icon: CommandLineIcon },
     ],
   },
   {
     name: 'Almacenes',
     icon: BuildingStorefrontIcon,
     items: [
-      { name: 'Ubicaciones', href: '/inventario/warehouses', icon: BuildingStorefrontIcon },
-      { name: 'Zonas', href: '/inventario/zones', icon: FolderIcon },
+      { name: 'Ubicaciones', href: '/inventario/almacenes', icon: BuildingStorefrontIcon },
+      { name: 'Zonas', href: '/inventario/zonas', icon: FolderIcon },
     ],
   },
   { name: 'Reportes Inventario', href: '/inventario/reports', icon: DocumentChartBarIcon },
@@ -238,35 +241,33 @@ export const REPORTES_MENU: MenuEntry[] = [
   { name: 'Reportes Personalizados', href: '/reportes/custom', icon: WrenchScrewdriverIcon },
 ]
 
-// ============================================
-// CONFIGURACIÓN GLOBAL (Accesible desde todos los módulos)
-// ============================================
-export const GLOBAL_MENU: MenuEntry[] = [
-  {
-    name: 'Gestión',
-    icon: FolderIcon,
-    items: [
-      { name: 'Usuarios', href: '/users', icon: UsersIcon, permission: 'users.view' },
-      { name: 'Procesos', href: '/processes', icon: CommandLineIcon, permission: 'processes.view' },
-    ],
-  },
+/**
+ * Menú del módulo GESTIÓN
+ * Usuarios, roles y administración
+ */
+export const GESTION_MENU: MenuEntry[] = [
+  { name: 'Dashboard Gestión', href: '/gestion/dashboard', icon: FolderIcon },
+  { name: 'Usuarios', href: '/users', icon: UsersIcon, permission: 'users.view' },
+  { name: 'Procesos', href: '/processes', icon: CommandLineIcon, permission: 'processes.view' },
   {
     name: 'Seguridad',
     icon: ShieldCheckIcon,
     items: [
-      { name: 'Roles y Permisos', href: '/security/roles', icon: ShieldExclamationIcon, permission: 'roles.view' },
-      { name: 'Auditoría', href: '/security/audit', icon: ClipboardDocumentListIcon, permission: 'audit.view' },
+      { name: 'Roles y Permisos', href: '/gestion/roles', icon: ShieldExclamationIcon, permission: 'roles.view' },
+      { name: 'Auditoría', href: '/gestion/auditoria', icon: ClipboardDocumentListIcon, permission: 'audit.view' },
     ],
   },
-  {
-    name: 'Configuración',
-    icon: Cog6ToothIcon,
-    items: [
-      { name: 'Perfil', href: '/settings/profile', icon: UserCircleIcon },
-      { name: 'General', href: '/settings/general', icon: WrenchScrewdriverIcon, permission: 'settings.manage' },
-      { name: 'Sistema', href: '/settings/system', icon: ServerIcon, permission: 'system.manage' },
-    ],
-  },
+]
+
+/**
+ * Menú del módulo CONFIGURACIÓN
+ * Ajustes del sistema y perfil
+ */
+export const CONFIGURACION_MENU: MenuEntry[] = [
+  { name: 'Dashboard Config', href: '/settings/dashboard', icon: Cog6ToothIcon },
+  { name: 'Perfil', href: '/settings/profile', icon: UserCircleIcon },
+  { name: 'General', href: '/settings/general', icon: WrenchScrewdriverIcon, permission: 'settings.manage' },
+  { name: 'Sistema', href: '/settings/system', icon: ServerIcon, permission: 'system.manage' },
 ]
 
 // ============================================
@@ -279,6 +280,10 @@ export const MODULE_MENU_MAP: Record<string, MenuEntry[]> = {
   ventas: VENTAS_MENU,
   inventario: INVENTARIO_MENU,
   reportes: REPORTES_MENU,
+  gestion: GESTION_MENU,
+  configuracion: CONFIGURACION_MENU,
+  'design-system': DESIGN_SYSTEM_MENU,
+  examples: EXAMPLES_MENU,
 }
 
 /**
@@ -287,8 +292,7 @@ export const MODULE_MENU_MAP: Record<string, MenuEntry[]> = {
  * @returns Array de entries del menú
  */
 export function getMenuForModule(moduleId: string): MenuEntry[] {
-  const moduleMenu = MODULE_MENU_MAP[moduleId] || DASHBOARD_MENU
-  return [...moduleMenu, ...GLOBAL_MENU]
+  return MODULE_MENU_MAP[moduleId] || DASHBOARD_MENU
 }
 
 // Compatibilidad con código existente
