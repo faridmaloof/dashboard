@@ -7,6 +7,8 @@ export { Button } from './Button'
 export { ButtonGroup } from './ButtonGroup'
 export { Card, CardHeader } from './Card'
 export { Input } from './Input'
+export { MaskedInput } from './MaskedInput'
+export type { MaskedInputProps, PredefinedMask } from './MaskedInput'
 export { Textarea } from './Textarea'
 export { Select } from './Select'
 export { Modal } from './Modal'
@@ -30,7 +32,15 @@ export { PhoneInput } from './PhoneInput'
 export { ProgressBar, MultiProgressBar } from './ProgressBar'
 export { RadioGroup } from './RadioGroup'
 export { DataTable } from './DataTable'
-export type { DataTableProps, DataTablePagination, DataTableActions, DataTableGlobalAction } from './DataTable'
+export type { 
+  DataTableProps, 
+  DataTablePagination, 
+  DataTableActions, 
+  DataTableGlobalAction,
+  DataTableFilter,
+  FilterState,
+  FilterType
+} from './DataTable'
 export { Spinner, ProgressSpinner } from './Spinner'
 export { Switch } from './Switch'
 export { Tabs } from './Tabs'
@@ -57,6 +67,32 @@ export { Stepper, useStepper } from './Stepper'
 export type { Step, StepperProps } from './Stepper'
 export { DatePicker, DateTimePicker, DateRangePicker } from './DatePicker'
 export type { DatePickerProps, DateTimePickerProps, DateRangePickerProps } from './DatePicker'
+
+// Advanced Date Controls
+export { 
+  DatePicker as DatePickerV2, 
+  DateRangePicker as DateRangePickerV2, 
+  TimeRangePicker,
+  CalendarNavigation,
+  CalendarGrid,
+  TimePicker
+} from './DateControls'
+export type { 
+  SingleDatePickerProps, 
+  DateRangePickerProps as DateRangePickerV2Props, 
+  TimeRangePickerProps, 
+  BaseDatePickerProps 
+} from './DateControls'
+
+// Scheduler
+export { Scheduler } from './Scheduler'
+export type { 
+  SchedulerProps, 
+  SchedulerConfig, 
+  Appointment, 
+  AppointmentStatus, 
+  ViewMode 
+} from './Scheduler'
 export { ModuleSwitcher, useModuleSwitcher } from './ModuleSwitcher'
 export type { Module, ModuleSwitcherProps } from './ModuleSwitcher'
 export { CommandPalette, useCommandPalette } from './CommandPalette'
@@ -69,6 +105,14 @@ export type { CodePreviewProps, CodePreviewGroupProps } from './CodePreview'
 // Charts
 export { ChartLine, ChartBar, ChartPie, ChartArea, ChartRadar, ChartGauge, CHART_COLORS, DEFAULT_COLORS } from './Charts'
 export type { ChartLineProps, ChartBarProps, ChartPieProps, ChartAreaProps, ChartRadarProps, ChartGaugeProps } from './Charts'
+
+// TagInput
+export { default as TagInput } from './TagInput'
+export type { Tag, TagInputProps } from './TagInput'
+
+// FloatingActionButton
+export { FloatingActionButton } from './FloatingActionButton'
+export type { FloatingActionButtonProps, FABAction } from './FloatingActionButton'
 
 // Export types
 export type { BreadcrumbItem } from './Breadcrumb'

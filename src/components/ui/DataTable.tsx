@@ -37,12 +37,16 @@ import {
   ChevronUpIcon, 
   ChevronDownIcon, 
   MagnifyingGlassIcon,
-  InboxIcon 
+  InboxIcon,
+  FunnelIcon,
+  XMarkIcon,
 } from '@heroicons/react/24/outline'
 import clsx from 'clsx'
 import { Card } from './Card'
 import { Input } from './Input'
+import { Select } from './Select'
 import { Button } from './Button'
+import { DatePicker, DateRangePicker } from './DateControls'
 import { CrudActions } from '@/components/crud/CrudActions'
 import { CrudPagination } from '@/components/crud/CrudPagination'
 
@@ -57,6 +61,36 @@ export interface DataTablePagination {
   onPageChange: (page: number) => void
   onPerPageChange?: (perPage: number) => void
 }
+
+/**
+ * Tipo de filtro
+ */
+export type FilterType = 'text' | 'select' | 'multiselect' | 'date' | 'daterange' | 'number' | 'numberrange' | 'location' | 'color'
+
+/**
+ * Configuración de filtro
+ */
+export interface DataTableFilter {
+  /** ID del filtro (debe coincidir con el accessorKey de la columna) */
+  id: string
+  /** Etiqueta del filtro */
+  label: string
+  /** Tipo de filtro */
+  type: FilterType
+  /** Opciones para select/multiselect */
+  options?: Array<{ label: string; value: string | number }>
+  /** Placeholder del input */
+  placeholder?: string
+  /** Ancho del filtro (clases de Tailwind) */
+  width?: string
+  /** Valor por defecto */
+  defaultValue?: any
+}
+
+/**
+ * Estado de filtros activos
+ */
+export type FilterState = Record<string, any>
 
 /**
  * Acción global de la tabla
@@ -116,6 +150,11 @@ export interface DataTableProps<T extends { id: string | number }> {
   searchValue?: string
   onSearch?: (value: string) => void
   
+  // Filtros
+  filters?: DataTableFilter[]
+  filterValues?: FilterState
+  onFilterChange?: (filters: FilterState) => void
+  
   // Selección
   selectable?: boolean
   selectedRows?: Set<string | number>
@@ -151,6 +190,9 @@ export function DataTable<T extends { id: string | number }>({
   searchPlaceholder = 'Buscar...',
   searchValue,
   onSearch,
+  filters = [],
+  filterValues = {},
+  onFilterChange,
   selectable = false,
   selectedRows = new Set(),
   onSelectionChange,
@@ -162,6 +204,7 @@ export function DataTable<T extends { id: string | number }>({
   wrapped = true,
 }: DataTableProps<T>) {
   const [sorting, setSorting] = useState<SortingState>([])
+  const [showFilters, setShowFilters] = useState(false)
 
   // Agregar columna de acciones si está definido
   const enhancedColumns = useMemo(() => {
@@ -226,9 +269,31 @@ export function DataTable<T extends { id: string | number }>({
     (action) => !action.showOnlyWhenSelected || hasSelection
   )
 
+  // Manejo de filtros
+  const handleFilterChange = (filterId: string, value: any) => {
+    if (!onFilterChange) return
+    
+    const newFilters = { ...filterValues, [filterId]: value }
+    
+    // Eliminar filtros vacíos
+    if (value === '' || value === null || value === undefined || (Array.isArray(value) && value.length === 0)) {
+      delete newFilters[filterId]
+    }
+    
+    onFilterChange(newFilters)
+  }
+
+  const handleClearFilters = () => {
+    if (!onFilterChange) return
+    onFilterChange({})
+  }
+
+  const activeFiltersCount = Object.keys(filterValues).length
+  const hasFilters = filters.length > 0
+
   // Renderizar barra de acciones globales y búsqueda
   const renderToolbar = () => {
-    const hasToolbar = searchable || visibleGlobalActions.length > 0
+    const hasToolbar = searchable || visibleGlobalActions.length > 0 || hasFilters
 
     if (!hasToolbar) return null
 
@@ -248,9 +313,28 @@ export function DataTable<T extends { id: string | number }>({
           </div>
         )}
 
-        {/* Acciones globales */}
-        {visibleGlobalActions.length > 0 && (
+        {/* Acciones globales + Botón de filtros */}
+        {(visibleGlobalActions.length > 0 || hasFilters) && (
           <div className="flex gap-2 flex-wrap">
+            {/* Botón de filtros */}
+            {hasFilters && (
+              <Button
+                variant={showFilters ? 'primary' : 'secondary'}
+                size="sm"
+                onClick={() => setShowFilters(!showFilters)}
+                className="whitespace-nowrap"
+              >
+                <FunnelIcon className="h-4 w-4 mr-1.5" />
+                Filtros
+                {activeFiltersCount > 0 && (
+                  <span className="ml-1.5 px-1.5 py-0.5 text-xs bg-white/20 rounded">
+                    {activeFiltersCount}
+                  </span>
+                )}
+              </Button>
+            )}
+
+            {/* Acciones globales */}
             {visibleGlobalActions.map((action, index) => {
               const isDisabled = action.requiresSelection && !hasSelection
 
@@ -277,6 +361,285 @@ export function DataTable<T extends { id: string | number }>({
         )}
       </div>
     )
+  }
+
+  // Renderizar filtros
+  const renderFilters = () => {
+    if (!hasFilters || !showFilters) return null
+
+    return (
+      <div className="mb-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+        <div className="flex items-center justify-between mb-3">
+          <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-2">
+            <FunnelIcon className="h-4 w-4" />
+            Filtros Activos
+          </h4>
+          {activeFiltersCount > 0 && (
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={handleClearFilters}
+              className="text-xs"
+            >
+              <XMarkIcon className="h-3 w-3 mr-1" />
+              Limpiar
+            </Button>
+          )}
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+          {filters.map((filter) => (
+            <div key={filter.id} className={filter.width || 'col-span-1'}>
+              {renderFilterControl(filter)}
+            </div>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  // Renderizar control de filtro según tipo
+  const renderFilterControl = (filter: DataTableFilter) => {
+    const value = filterValues[filter.id]
+
+    switch (filter.type) {
+      case 'text':
+        return (
+          <Input
+            label={filter.label}
+            placeholder={filter.placeholder || `Buscar por ${filter.label.toLowerCase()}...`}
+            value={value || ''}
+            onChange={(e) => handleFilterChange(filter.id, e.target.value)}
+          />
+        )
+
+      case 'select':
+        return (
+          <Select
+            label={filter.label}
+            value={value || ''}
+            onChange={(e) => handleFilterChange(filter.id, e.target.value)}
+            options={[
+              { label: `Todos los ${filter.label.toLowerCase()}`, value: '' },
+              ...(filter.options || []),
+            ]}
+          />
+        )
+
+      case 'multiselect':
+        return (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              {filter.label}
+            </label>
+            <select
+              multiple
+              value={value || []}
+              onChange={(e) => {
+                const selected = Array.from(e.target.selectedOptions, (option) => option.value)
+                handleFilterChange(filter.id, selected)
+              }}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+            >
+              {filter.options?.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              Mantén Ctrl/Cmd para seleccionar múltiples
+            </p>
+          </div>
+        )
+
+      case 'date':
+        return (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              {filter.label}
+            </label>
+            <DatePicker
+              value={value ? new Date(value) : null}
+              onChange={(date) => handleFilterChange(filter.id, date?.toISOString())}
+              placeholder={filter.placeholder}
+            />
+          </div>
+        )
+
+      case 'daterange':
+        return (
+          <div className="col-span-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              {filter.label}
+            </label>
+            <DateRangePicker
+              value={value ? [new Date(value[0]), new Date(value[1])] : [null, null]}
+              onChange={(range) => {
+                if (range[0] && range[1]) {
+                  handleFilterChange(filter.id, [range[0].toISOString(), range[1].toISOString()])
+                } else {
+                  handleFilterChange(filter.id, null)
+                }
+              }}
+            />
+          </div>
+        )
+
+      case 'number':
+        return (
+          <Input
+            type="number"
+            label={filter.label}
+            placeholder={filter.placeholder || `Filtrar por ${filter.label.toLowerCase()}...`}
+            value={value || ''}
+            onChange={(e) => handleFilterChange(filter.id, e.target.value ? Number(e.target.value) : '')}
+          />
+        )
+
+      case 'numberrange':
+        return (
+          <div className="col-span-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              {filter.label}
+            </label>
+            <div className="flex gap-2">
+              <Input
+                type="number"
+                placeholder="Mínimo"
+                value={value?.min || ''}
+                onChange={(e) => {
+                  const newValue = { ...(value || {}), min: e.target.value ? Number(e.target.value) : undefined }
+                  handleFilterChange(filter.id, newValue.min || newValue.max ? newValue : null)
+                }}
+              />
+              <Input
+                type="number"
+                placeholder="Máximo"
+                value={value?.max || ''}
+                onChange={(e) => {
+                  const newValue = { ...(value || {}), max: e.target.value ? Number(e.target.value) : undefined }
+                  handleFilterChange(filter.id, newValue.min || newValue.max ? newValue : null)
+                }}
+              />
+            </div>
+          </div>
+        )
+
+      case 'location':
+        return (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              {filter.label}
+            </label>
+            <div className="relative">
+              <Input
+                placeholder={filter.placeholder || `Buscar ${filter.label.toLowerCase()}...`}
+                value={value || ''}
+                onChange={(e) => handleFilterChange(filter.id, e.target.value)}
+                className="pl-10"
+              />
+              <svg
+                className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400 pointer-events-none"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+            </div>
+            {filter.options && filter.options.length > 0 && (
+              <div className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                Ubicaciones disponibles: {filter.options.map(o => o.label).join(', ')}
+              </div>
+            )}
+          </div>
+        )
+
+      case 'color':
+        return (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              {filter.label}
+            </label>
+            {filter.options && filter.options.length > 0 ? (
+              // Color picker con opciones predefinidas
+              <div className="flex flex-wrap gap-2">
+                {filter.options.map((option) => (
+                  <button
+                    key={option.value}
+                    type="button"
+                    onClick={() => handleFilterChange(filter.id, option.value)}
+                    className={clsx(
+                      'relative w-10 h-10 rounded-lg border-2 transition-all',
+                      value === option.value
+                        ? 'ring-2 ring-primary-500 ring-offset-2 dark:ring-offset-gray-800 border-primary-500'
+                        : 'border-gray-300 dark:border-gray-600 hover:border-gray-400'
+                    )}
+                    style={{ backgroundColor: String(option.value) }}
+                    title={option.label}
+                  >
+                    {value === option.value && (
+                      <svg
+                        className="absolute inset-0 m-auto h-6 w-6 text-white drop-shadow-lg"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    )}
+                  </button>
+                ))}
+                {value && (
+                  <button
+                    type="button"
+                    onClick={() => handleFilterChange(filter.id, null)}
+                    className="w-10 h-10 rounded-lg border-2 border-gray-300 dark:border-gray-600 hover:border-red-500 dark:hover:border-red-500 flex items-center justify-center text-gray-400 hover:text-red-500 transition-colors"
+                    title="Limpiar color"
+                  >
+                    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                )}
+              </div>
+            ) : (
+              // Color picker nativo
+              <div className="flex items-center gap-2">
+                <input
+                  type="color"
+                  value={value || '#000000'}
+                  onChange={(e) => handleFilterChange(filter.id, e.target.value)}
+                  className="h-10 w-20 rounded-lg border border-gray-300 dark:border-gray-600 cursor-pointer"
+                />
+                <Input
+                  placeholder="#000000"
+                  value={value || ''}
+                  onChange={(e) => handleFilterChange(filter.id, e.target.value)}
+                  className="flex-1"
+                />
+                {value && (
+                  <button
+                    type="button"
+                    onClick={() => handleFilterChange(filter.id, null)}
+                    className="px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                  >
+                    Limpiar
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+        )
+
+      default:
+        return null
+    }
   }
 
   // Empty state mejorado
@@ -496,6 +859,7 @@ export function DataTable<T extends { id: string | number }>({
   const content = (
     <div className={className}>
       {renderToolbar()}
+      {renderFilters()}
 
       {isLoading ? (
         renderLoadingState()

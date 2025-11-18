@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
+import { persist, createJSONStorage } from 'zustand/middleware'
 
 interface AuthState {
   accessToken: string | null
@@ -8,6 +8,43 @@ interface AuthState {
   setTokens: (accessToken: string, refreshToken: string, remember?: boolean) => void
   setAccessToken: (token: string | null) => void
   clearAuth: () => void
+}
+
+// Custom storage que alterna entre localStorage y sessionStorage
+const createDualStorage = () => {
+  return createJSONStorage(() => ({
+    getItem: (name: string) => {
+      // Primero intentar localStorage
+      const localValue = localStorage.getItem(name)
+      if (localValue) return localValue
+      
+      // Luego sessionStorage
+      return sessionStorage.getItem(name)
+    },
+    setItem: (name: string, value: string) => {
+      try {
+        const parsed = JSON.parse(value)
+        const state = parsed?.state as Partial<AuthState> | undefined
+        
+        if (state?.rememberMe) {
+          // Si remember me está activado, usar localStorage
+          localStorage.setItem(name, value)
+          sessionStorage.removeItem(name)
+        } else {
+          // Si no, usar sessionStorage (se borra al cerrar navegador)
+          sessionStorage.setItem(name, value)
+          localStorage.removeItem(name)
+        }
+      } catch {
+        // En caso de error, usar sessionStorage por defecto
+        sessionStorage.setItem(name, value)
+      }
+    },
+    removeItem: (name: string) => {
+      localStorage.removeItem(name)
+      sessionStorage.removeItem(name)
+    },
+  }))
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -28,11 +65,7 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: 'auth-storage',
-      partialize: (state) => ({
-        accessToken: state.rememberMe ? state.accessToken : null,
-        refreshToken: state.rememberMe ? state.refreshToken : null,
-        rememberMe: state.rememberMe,
-      }),
+      storage: createDualStorage(),
     }
   )
 )

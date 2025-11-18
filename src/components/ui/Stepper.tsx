@@ -117,66 +117,123 @@ export function Stepper({
             <li
               key={index}
               className={clsx(
-                'relative flex',
-                isVertical ? 'flex-col' : 'flex-1 flex-row items-center',
-                !isLast && (isVertical ? 'pb-4' : '')
+                'relative',
+                isVertical ? 'flex flex-col pb-4' : 'flex flex-1 items-center'
               )}
             >
-              <button
-                type="button"
-                className={clsx(
-                  'flex items-center group',
-                  isVertical ? 'flex-row gap-3' : 'flex-col gap-2',
-                  clickable && 'cursor-pointer hover:opacity-80',
-                  !clickable && 'cursor-default'
-                )}
-                onClick={() => clickable && onStepClick?.(index)}
-                disabled={!clickable}
-              >
-                {/* Circle */}
-                <div
-                  className={clsx(
-                    'flex items-center justify-center w-10 h-10 rounded-full transition-all duration-200',
-                    styles.circle,
-                    clickable && 'group-hover:scale-110'
-                  )}
-                >
-                  {status === 'completed' ? (
-                    <CheckIcon className="w-5 h-5" />
-                  ) : step.icon ? (
-                    <div className="w-5 h-5">{step.icon}</div>
-                  ) : (
-                    <span className="font-semibold">{index + 1}</span>
-                  )}
-                </div>
-
-                {/* Label */}
-                <div className={clsx('flex flex-col', isVertical ? 'text-left' : 'text-center')}>
-                  <span className={clsx('text-sm font-medium transition-colors', styles.label)}>
-                    {step.label}
-                    {step.optional && (
-                      <span className="ml-1 text-xs text-gray-400">(Opcional)</span>
+              {/* Estructura en horizontal: círculo arriba, texto abajo, conector al lado */}
+              {isVertical ? (
+                <>
+                  <button
+                    type="button"
+                    className={clsx(
+                      'flex items-center gap-3 group',
+                      clickable && 'cursor-pointer hover:opacity-80',
+                      !clickable && 'cursor-default'
                     )}
-                  </span>
-                  {step.description && (
-                    <span className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                      {step.description}
-                    </span>
-                  )}
-                </div>
-              </button>
+                    onClick={() => clickable && onStepClick?.(index)}
+                    disabled={!clickable}
+                  >
+                    {/* Circle */}
+                    <div
+                      className={clsx(
+                        'flex items-center justify-center w-10 h-10 rounded-full shrink-0 transition-all duration-200',
+                        styles.circle,
+                        clickable && 'group-hover:scale-110'
+                      )}
+                    >
+                      {status === 'completed' ? (
+                        <CheckIcon className="w-5 h-5" />
+                      ) : step.icon ? (
+                        <div className="w-5 h-5">{step.icon}</div>
+                      ) : (
+                        <span className="font-semibold">{index + 1}</span>
+                      )}
+                    </div>
 
-              {/* Connector Line */}
-              {!isLast && (
-                <div
-                  className={clsx(
-                    'transition-colors duration-200',
-                    isVertical
-                      ? 'absolute left-5 top-10 w-0.5 h-full -translate-x-1/2'
-                      : 'flex-1 h-0.5 mx-4',
-                    statusStyles[getStepStatus(index)].line
+                    {/* Label */}
+                    <div className="flex flex-col text-left min-w-0">
+                      <span className={clsx('text-sm font-medium transition-colors break-words', styles.label)}>
+                        {step.label}
+                        {step.optional && (
+                          <span className="ml-1 text-xs text-gray-400">(Opcional)</span>
+                        )}
+                      </span>
+                      {step.description && (
+                        <span className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 break-words">
+                          {step.description}
+                        </span>
+                      )}
+                    </div>
+                  </button>
+
+                  {/* Connector Line - Vertical */}
+                  {!isLast && (
+                    <div
+                      className={clsx(
+                        'absolute left-5 top-10 w-0.5 h-full -translate-x-1/2 transition-colors duration-200',
+                        statusStyles[getStepStatus(index)].line
+                      )}
+                    />
                   )}
-                />
+                </>
+              ) : (
+                <>
+                  <div className="flex flex-col items-center min-w-0 flex-shrink-0">
+                    <button
+                      type="button"
+                      className={clsx(
+                        'flex flex-col items-center gap-2 group',
+                        clickable && 'cursor-pointer hover:opacity-80',
+                        !clickable && 'cursor-default'
+                      )}
+                      onClick={() => clickable && onStepClick?.(index)}
+                      disabled={!clickable}
+                    >
+                      {/* Circle */}
+                      <div
+                        className={clsx(
+                          'flex items-center justify-center w-10 h-10 rounded-full shrink-0 transition-all duration-200',
+                          styles.circle,
+                          clickable && 'group-hover:scale-110'
+                        )}
+                      >
+                        {status === 'completed' ? (
+                          <CheckIcon className="w-5 h-5" />
+                        ) : step.icon ? (
+                          <div className="w-5 h-5">{step.icon}</div>
+                        ) : (
+                          <span className="font-semibold">{index + 1}</span>
+                        )}
+                      </div>
+
+                      {/* Label */}
+                      <div className="flex flex-col text-center max-w-[120px]">
+                        <span className={clsx('text-sm font-medium transition-colors break-words', styles.label)}>
+                          {step.label}
+                          {step.optional && (
+                            <span className="ml-1 text-xs text-gray-400 block">(Opcional)</span>
+                          )}
+                        </span>
+                        {step.description && (
+                          <span className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 break-words">
+                            {step.description}
+                          </span>
+                        )}
+                      </div>
+                    </button>
+                  </div>
+
+                  {/* Connector Line - Horizontal */}
+                  {!isLast && (
+                    <div
+                      className={clsx(
+                        'flex-1 h-0.5 mx-4 transition-colors duration-200',
+                        statusStyles[getStepStatus(index)].line
+                      )}
+                    />
+                  )}
+                </>
               )}
             </li>
           )

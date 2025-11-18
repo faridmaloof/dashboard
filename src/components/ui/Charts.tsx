@@ -26,19 +26,26 @@ import {
  * 
  * Wrappers unificados para Recharts con estilos consistentes del Design System.
  * Todos los componentes usan los tokens CSS y soportan dark mode automáticamente.
+ * Incluye mejoras de responsividad y dimensionamiento automático.
  */
 
 interface BaseChartProps {
   /** Datos para renderizar */
   data: any[]
-  /** Altura del gráfico en píxeles */
+  /** Altura del gráfico en píxeles (default: 300) */
   height?: number
+  /** Altura mínima en píxeles para contenedores pequeños (default: 200) */
+  minHeight?: number
+  /** Ancho del gráfico (default: '100%' - se ajusta al contenedor) */
+  width?: string | number
   /** Mostrar leyenda */
   showLegend?: boolean
   /** Mostrar tooltip */
   showTooltip?: boolean
   /** Colores personalizados (sobrescribe los del theme) */
   colors?: string[]
+  /** Clase CSS adicional para el contenedor */
+  className?: string
 }
 
 /**
@@ -97,41 +104,47 @@ export const ChartLine = ({
   xAxisKey,
   dataKey,
   height = 300,
+  minHeight = 200,
   showLegend = true,
   showTooltip = true,
   smooth = true,
   colors = DEFAULT_COLORS,
+  className,
 }: ChartLineProps) => {
   const dataKeys = Array.isArray(dataKey) ? dataKey : [dataKey]
 
   return (
-    <ResponsiveContainer width="100%" height={height}>
-      <LineChart data={data} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-        <CartesianGrid strokeDasharray="3 3" className="stroke-gray-300 dark:stroke-gray-700" />
-        <XAxis 
-          dataKey={xAxisKey} 
-          className="text-gray-600 dark:text-gray-400"
-          tick={{ fill: 'currentColor' }}
-        />
-        <YAxis 
-          className="text-gray-600 dark:text-gray-400"
-          tick={{ fill: 'currentColor' }}
-        />
-        {showTooltip && <Tooltip contentStyle={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)' }} />}
-        {showLegend && <Legend />}
-        {dataKeys.map((key, index) => (
-          <Line
-            key={key}
-            type={smooth ? 'monotone' : 'linear'}
-            dataKey={key}
-            stroke={colors[index % colors.length]}
-            strokeWidth={2}
-            dot={{ fill: colors[index % colors.length] }}
-            activeDot={{ r: 6 }}
+    <div className={className} style={{ minHeight: `${minHeight}px`, width: '100%' }}>
+      <ResponsiveContainer width="100%" height={height} minHeight={minHeight}>
+        <LineChart data={data} margin={{ top: 10, right: 30, left: 0, bottom: 10 }}>
+          <CartesianGrid strokeDasharray="3 3" className="stroke-gray-300 dark:stroke-gray-700" />
+          <XAxis 
+            dataKey={xAxisKey} 
+            className="text-gray-600 dark:text-gray-400"
+            tick={{ fill: 'currentColor', fontSize: 12 }}
+            height={40}
           />
-        ))}
-      </LineChart>
-    </ResponsiveContainer>
+          <YAxis 
+            className="text-gray-600 dark:text-gray-400"
+            tick={{ fill: 'currentColor', fontSize: 12 }}
+            width={50}
+          />
+          {showTooltip && <Tooltip contentStyle={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)' }} />}
+          {showLegend && <Legend wrapperStyle={{ paddingTop: '10px' }} />}
+          {dataKeys.map((key, index) => (
+            <Line
+              key={key}
+              type={smooth ? 'monotone' : 'linear'}
+              dataKey={key}
+              stroke={colors[index % colors.length]}
+              strokeWidth={2}
+              dot={{ fill: colors[index % colors.length] }}
+              activeDot={{ r: 6 }}
+            />
+          ))}
+        </LineChart>
+      </ResponsiveContainer>
+    </div>
   )
 }
 
@@ -164,44 +177,48 @@ export const ChartBar = ({
   xAxisKey,
   dataKey,
   height = 300,
+  minHeight = 200,
   showLegend = true,
   showTooltip = true,
   horizontal = false,
   colors = DEFAULT_COLORS,
+  className,
 }: ChartBarProps) => {
   const dataKeys = Array.isArray(dataKey) ? dataKey : [dataKey]
 
   return (
-    <ResponsiveContainer width="100%" height={height}>
-      <BarChart 
-        data={data} 
-        margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-        layout={horizontal ? 'vertical' : 'horizontal'}
-      >
-        <CartesianGrid strokeDasharray="3 3" className="stroke-gray-300 dark:stroke-gray-700" />
-        {horizontal ? (
-          <>
-            <YAxis type="category" dataKey={xAxisKey} className="text-gray-600 dark:text-gray-400" tick={{ fill: 'currentColor' }} />
-            <XAxis type="number" className="text-gray-600 dark:text-gray-400" tick={{ fill: 'currentColor' }} />
-          </>
-        ) : (
-          <>
-            <XAxis dataKey={xAxisKey} className="text-gray-600 dark:text-gray-400" tick={{ fill: 'currentColor' }} />
-            <YAxis className="text-gray-600 dark:text-gray-400" tick={{ fill: 'currentColor' }} />
-          </>
-        )}
-        {showTooltip && <Tooltip contentStyle={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)' }} />}
-        {showLegend && <Legend />}
-        {dataKeys.map((key, index) => (
-          <Bar
-            key={key}
-            dataKey={key}
-            fill={colors[index % colors.length]}
-            radius={[8, 8, 0, 0]}
-          />
-        ))}
-      </BarChart>
-    </ResponsiveContainer>
+    <div className={className} style={{ minHeight: `${minHeight}px`, width: '100%' }}>
+      <ResponsiveContainer width="100%" height={height} minHeight={minHeight}>
+        <BarChart 
+          data={data} 
+          margin={{ top: 10, right: 30, left: 0, bottom: 10 }}
+          layout={horizontal ? 'vertical' : 'horizontal'}
+        >
+          <CartesianGrid strokeDasharray="3 3" className="stroke-gray-300 dark:stroke-gray-700" />
+          {horizontal ? (
+            <>
+              <YAxis type="category" dataKey={xAxisKey} className="text-gray-600 dark:text-gray-400" tick={{ fill: 'currentColor', fontSize: 12 }} width={80} />
+              <XAxis type="number" className="text-gray-600 dark:text-gray-400" tick={{ fill: 'currentColor', fontSize: 12 }} height={40} />
+            </>
+          ) : (
+            <>
+              <XAxis dataKey={xAxisKey} className="text-gray-600 dark:text-gray-400" tick={{ fill: 'currentColor', fontSize: 12 }} height={40} />
+              <YAxis className="text-gray-600 dark:text-gray-400" tick={{ fill: 'currentColor', fontSize: 12 }} width={50} />
+            </>
+          )}
+          {showTooltip && <Tooltip contentStyle={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)' }} />}
+          {showLegend && <Legend wrapperStyle={{ paddingTop: '10px' }} />}
+          {dataKeys.map((key, index) => (
+            <Bar
+              key={key}
+              dataKey={key}
+              fill={colors[index % colors.length]}
+              radius={[8, 8, 0, 0]}
+            />
+          ))}
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
   )
 }
 
@@ -234,14 +251,17 @@ export const ChartPie = ({
   nameKey,
   dataKey,
   height = 300,
+  minHeight = 200,
   showLegend = true,
   showTooltip = true,
   donut = false,
   colors = DEFAULT_COLORS,
+  className,
 }: ChartPieProps) => {
   return (
-    <ResponsiveContainer width="100%" height={height}>
-      <PieChart>
+    <div className={className} style={{ minHeight: `${minHeight}px`, width: '100%' }}>
+      <ResponsiveContainer width="100%" height={height} minHeight={minHeight}>
+        <PieChart>
         {showTooltip && <Tooltip contentStyle={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)' }} />}
         {showLegend && <Legend />}
         <Pie
@@ -261,6 +281,7 @@ export const ChartPie = ({
         </Pie>
       </PieChart>
     </ResponsiveContainer>
+    </div>
   )
 }
 
@@ -293,41 +314,47 @@ export const ChartArea = ({
   xAxisKey,
   dataKey,
   height = 300,
+  minHeight = 200,
   showLegend = true,
   showTooltip = true,
   stacked = false,
   colors = DEFAULT_COLORS,
+  className,
 }: ChartAreaProps) => {
   const dataKeys = Array.isArray(dataKey) ? dataKey : [dataKey]
 
   return (
-    <ResponsiveContainer width="100%" height={height}>
-      <AreaChart data={data} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-        <CartesianGrid strokeDasharray="3 3" className="stroke-gray-300 dark:stroke-gray-700" />
-        <XAxis 
-          dataKey={xAxisKey} 
-          className="text-gray-600 dark:text-gray-400"
-          tick={{ fill: 'currentColor' }}
-        />
-        <YAxis 
-          className="text-gray-600 dark:text-gray-400"
-          tick={{ fill: 'currentColor' }}
-        />
-        {showTooltip && <Tooltip contentStyle={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)' }} />}
-        {showLegend && <Legend />}
-        {dataKeys.map((key, index) => (
-          <Area
-            key={key}
-            type="monotone"
-            dataKey={key}
-            stackId={stacked ? '1' : undefined}
-            stroke={colors[index % colors.length]}
-            fill={colors[index % colors.length]}
-            fillOpacity={0.6}
+    <div className={className} style={{ minHeight: `${minHeight}px`, width: '100%' }}>
+      <ResponsiveContainer width="100%" height={height} minHeight={minHeight}>
+        <AreaChart data={data} margin={{ top: 10, right: 30, left: 0, bottom: 10 }}>
+          <CartesianGrid strokeDasharray="3 3" className="stroke-gray-300 dark:stroke-gray-700" />
+          <XAxis 
+            dataKey={xAxisKey} 
+            className="text-gray-600 dark:text-gray-400"
+            tick={{ fill: 'currentColor', fontSize: 12 }}
+            height={40}
           />
-        ))}
-      </AreaChart>
-    </ResponsiveContainer>
+          <YAxis 
+            className="text-gray-600 dark:text-gray-400"
+            tick={{ fill: 'currentColor', fontSize: 12 }}
+            width={50}
+          />
+          {showTooltip && <Tooltip contentStyle={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)' }} />}
+          {showLegend && <Legend wrapperStyle={{ paddingTop: '10px' }} />}
+          {dataKeys.map((key, index) => (
+            <Area
+              key={key}
+              type="monotone"
+              dataKey={key}
+              stackId={stacked ? '1' : undefined}
+              stroke={colors[index % colors.length]}
+              fill={colors[index % colors.length]}
+              fillOpacity={0.6}
+            />
+          ))}
+        </AreaChart>
+      </ResponsiveContainer>
+    </div>
   )
 }
 
@@ -357,35 +384,39 @@ export const ChartRadar = ({
   angleKey,
   dataKey,
   height = 400,
+  minHeight = 300,
   showLegend = true,
   showTooltip = true,
   colors = DEFAULT_COLORS,
+  className,
 }: ChartRadarProps) => {
   const dataKeys = Array.isArray(dataKey) ? dataKey : [dataKey]
 
   return (
-    <ResponsiveContainer width="100%" height={height}>
-      <RadarChart data={data}>
-        <PolarGrid className="stroke-gray-300 dark:stroke-gray-700" />
-        <PolarAngleAxis 
-          dataKey={angleKey} 
-          className="text-gray-600 dark:text-gray-400"
-          tick={{ fill: 'currentColor' }}
-        />
-        <PolarRadiusAxis className="text-gray-600 dark:text-gray-400" />
-        {showTooltip && <Tooltip contentStyle={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)' }} />}
-        {showLegend && <Legend />}
-        {dataKeys.map((key, index) => (
-          <Radar
-            key={key}
-            dataKey={key}
-            stroke={colors[index % colors.length]}
-            fill={colors[index % colors.length]}
-            fillOpacity={0.5}
+    <div className={className} style={{ minHeight: `${minHeight}px`, width: '100%' }}>
+      <ResponsiveContainer width="100%" height={height} minHeight={minHeight}>
+        <RadarChart data={data}>
+          <PolarGrid className="stroke-gray-300 dark:stroke-gray-700" />
+          <PolarAngleAxis 
+            dataKey={angleKey} 
+            className="text-gray-600 dark:text-gray-400"
+            tick={{ fill: 'currentColor', fontSize: 12 }}
           />
-        ))}
-      </RadarChart>
-    </ResponsiveContainer>
+          <PolarRadiusAxis className="text-gray-600 dark:text-gray-400" tick={{ fontSize: 12 }} />
+          {showTooltip && <Tooltip contentStyle={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border)' }} />}
+          {showLegend && <Legend wrapperStyle={{ paddingTop: '10px' }} />}
+          {dataKeys.map((key, index) => (
+            <Radar
+              key={key}
+              dataKey={key}
+              stroke={colors[index % colors.length]}
+              fill={colors[index % colors.length]}
+              fillOpacity={0.5}
+            />
+          ))}
+        </RadarChart>
+      </ResponsiveContainer>
+    </div>
   )
 }
 

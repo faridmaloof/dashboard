@@ -74,7 +74,7 @@ export function CrudActions({
         <EllipsisVerticalIcon className="h-5 w-5" />
       </Menu.Button>
 
-      <Menu.Items className="absolute right-0 z-10 mt-2 w-56 origin-top-right rounded-md bg-white dark:bg-gray-800 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
+      <Menu.Items className="absolute right-0 z-[100] mt-2 w-56 origin-top-right rounded-md bg-white dark:bg-gray-800 shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
         <div className="py-1">
           {allActions.map((action, index) => (
             <Menu.Item key={index}>
